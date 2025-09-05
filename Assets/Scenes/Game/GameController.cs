@@ -8,6 +8,7 @@ public class GameController : MonoBehaviour
 {
     [Header("Game Settings")]
     [SerializeField] private GridBoard gridBoard;
+    [SerializeField] private GameSetup gameSetup;
     
     [Header("UI Elements")]
     [SerializeField] private GameObject gameUI;
@@ -15,6 +16,8 @@ public class GameController : MonoBehaviour
     
     [Header("Game State")]
     private bool isPaused = false;
+    private BoardCharacter playerCharacter;
+    private CharacterController characterController;
     
     void Start()
     {
@@ -34,11 +37,40 @@ public class GameController : MonoBehaviour
         Time.timeScale = 1f;
         isPaused = false;
         
+        if (gameSetup == null)
+        {
+            gameSetup = FindObjectOfType<GameSetup>();
+        }
+        
+        if (gridBoard == null)
+        {
+            gridBoard = FindObjectOfType<GridBoard>();
+        }
+        
+        StartCoroutine(WaitForGameSetup());
+        
         if (gameUI != null)
             gameUI.SetActive(true);
             
         if (pauseMenu != null)
             pauseMenu.SetActive(false);
+    }
+    
+    private IEnumerator WaitForGameSetup()
+    {
+        while (gameSetup == null || gameSetup.GetCharacter() == null)
+        {
+            yield return new WaitForSeconds(0.1f);
+            
+            if (gameSetup == null)
+                gameSetup = FindObjectOfType<GameSetup>();
+        }
+        
+        playerCharacter = gameSetup.GetCharacter();
+        characterController = gameSetup.GetCharacterController();
+        
+        Debug.Log("Jogo totalmente inicializado!");
+        Debug.Log("Use as setas do teclado para mover o personagem!");
     }
     
     public void TogglePause()
@@ -87,5 +119,20 @@ public class GameController : MonoBehaviour
         #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
         #endif
+    }
+    
+    public BoardCharacter GetPlayerCharacter()
+    {
+        return playerCharacter;
+    }
+    
+    public GridBoard GetGridBoard()
+    {
+        return gridBoard;
+    }
+    
+    public bool IsPaused()
+    {
+        return isPaused;
     }
 }

@@ -247,6 +247,11 @@ public class GridBoard : MonoBehaviour
     {
         Debug.Log($"Tile clicado: ({tile.TileX}, {tile.TileY})");
         
+        CharacterController characterController = FindObjectOfType<CharacterController>();
+        if (characterController != null)
+        {
+            characterController.OnTileClicked(tile);
+        }
     }
     
     public void ClearHighlights()
@@ -274,6 +279,11 @@ public class GridBoard : MonoBehaviour
                 tile.SetHighlight(true);
             }
         }
+    }
+    
+    public bool IsValidPosition(int x, int y)
+    {
+        return x >= 0 && x < gridWidth && y >= 0 && y < gridHeight;
     }
     
     void OnDestroy()
