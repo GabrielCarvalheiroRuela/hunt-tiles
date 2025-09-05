@@ -7,7 +7,7 @@ public class BoardCharacter : MonoBehaviour
     [Header("Character Settings")]
     [SerializeField] private int currentX = 0;
     [SerializeField] private int currentY = 0;
-    [SerializeField] private float moveSpeed = 2f;
+    [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private AnimationCurve moveCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
     
     [Header("Visual Settings")]
@@ -46,7 +46,6 @@ public class BoardCharacter : MonoBehaviour
     
     private void SetupCharacterVisual()
     {
-        // Configurar RectTransform
         characterTransform = GetComponent<RectTransform>();
         if (characterTransform == null)
         {
@@ -89,21 +88,62 @@ public class BoardCharacter : MonoBehaviour
         Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
         
         Vector2 center = new Vector2(size / 2f, size / 2f);
-        float radius = size / 2f - 2f;
+        float outerRadius = size / 2f - 2f;
+        float innerRadius = outerRadius * 0.7f;
+        
+        Color playerColor = characterColor;
+        Color playerDark = new Color(playerColor.r * 0.6f, playerColor.g * 0.6f, playerColor.b * 0.6f, 1f);
+        Color playerLight = new Color(
+            Mathf.Min(1f, playerColor.r * 1.3f), 
+            Mathf.Min(1f, playerColor.g * 1.3f), 
+            Mathf.Min(1f, playerColor.b * 1.3f), 
+            1f
+        );
         
         for (int x = 0; x < size; x++)
         {
             for (int y = 0; y < size; y++)
             {
                 float distance = Vector2.Distance(new Vector2(x, y), center);
-                if (distance <= radius)
+                Color pixelColor = Color.clear;
+                
+                if (distance <= outerRadius)
                 {
-                    texture.SetPixel(x, y, Color.white);
+                    float normalizedDistance = distance / outerRadius;
+                    
+                    if (distance <= innerRadius)
+                    {
+                        pixelColor = Color.Lerp(playerLight, playerColor, normalizedDistance);
+                    }
+                    else
+                    {
+                        pixelColor = Color.Lerp(playerColor, playerDark, (normalizedDistance - 0.7f) / 0.3f);
+                    }
+                    
+                    Vector2 lightPos = center + new Vector2(-8f, 8f);
+                    float lightDistance = Vector2.Distance(new Vector2(x, y), lightPos);
+                    if (lightDistance < 12f && distance <= outerRadius * 0.8f)
+                    {
+                        float lightIntensity = (12f - lightDistance) / 12f * 0.4f;
+                        pixelColor = Color.Lerp(pixelColor, Color.white, lightIntensity);
+                    }
+                    
+                    Vector2 leftEye = center + new Vector2(-6f, 4f);
+                    Vector2 rightEye = center + new Vector2(6f, 4f);
+                    if (Vector2.Distance(new Vector2(x, y), leftEye) < 3f || 
+                        Vector2.Distance(new Vector2(x, y), rightEye) < 3f)
+                    {
+                        pixelColor = Color.Lerp(pixelColor, Color.black, 0.8f);
+                    }
+                    
+                    Vector2 mouth = center + new Vector2(0f, -4f);
+                    if (Vector2.Distance(new Vector2(x, y), mouth) < 2f && y < center.y - 2f)
+                    {
+                        pixelColor = Color.Lerp(pixelColor, Color.black, 0.6f);
+                    }
                 }
-                else
-                {
-                    texture.SetPixel(x, y, Color.clear);
-                }
+                
+                texture.SetPixel(x, y, pixelColor);
             }
         }
         
@@ -116,7 +156,15 @@ public class BoardCharacter : MonoBehaviour
         if (gridBoard == null) return false;
         
         GridTileUI targetTile = gridBoard.GetTile(x, y);
-        return targetTile != null && targetTile.IsWalkable;
+        if (targetTile == null || !targetTile.IsWalkable) return false;
+        
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager != null)
+        {
+            return gameManager.CanMoveToPosition(x, y);
+        }
+        
+        return true;
     }
     
     public void MoveToPosition(int x, int y)
@@ -136,7 +184,15 @@ public class BoardCharacter : MonoBehaviour
         Vector2 targetPos = GetTilePosition(targetX, targetY);
         
         float elapsed = 0f;
-        float duration = 1f / moveSpeed;
+        float currentMoveSpeed = moveSpeed;
+        
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager != null && gameManager.HasSpeedBoost())
+        {
+            currentMoveSpeed *= 2f;
+        }
+        
+        float duration = 1f / currentMoveSpeed;
         
         while (elapsed < duration)
         {
@@ -154,6 +210,10 @@ public class BoardCharacter : MonoBehaviour
         currentY = targetY;
         
         MarkCurrentTileAsOccupied(true);
+        
+        CheckForCollectibles(targetX, targetY);
+        
+        CheckObstacleInteractions(targetX, targetY);
         
         isMoving = false;
     }
@@ -189,7 +249,7 @@ public class BoardCharacter : MonoBehaviour
             currentTile.SetOccupied(occupied);
         }
     }
-    
+
     public void MoveUp()
     {
         MoveToPosition(currentX, currentY - 1);
@@ -208,5 +268,28 @@ public class BoardCharacter : MonoBehaviour
     public void MoveRight()
     {
         MoveToPosition(currentX + 1, currentY);
+    }
+    
+    private void CheckForCollectibles(int x, int y)
+    {
+        Collectible[] collectibles = FindObjectsOfType<Collectible>();
+        
+        foreach (Collectible collectible in collectibles)
+        {
+            if (collectible.GridX == x && collectible.GridY == y && !collectible.IsCollected)
+            {
+                collectible.Collect();
+                Debug.Log($"Coletável {collectible.Type} coletado na posição ({x}, {y})!");
+            }
+        }
+    }
+    
+    private void CheckObstacleInteractions(int x, int y)
+    {
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager != null)
+        {
+            gameManager.HandleObstacleInteraction(x, y);
+        }
     }
 }

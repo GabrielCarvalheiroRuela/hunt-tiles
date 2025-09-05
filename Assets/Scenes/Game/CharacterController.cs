@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CharacterController : MonoBehaviour
 {
@@ -31,45 +32,24 @@ public class CharacterController : MonoBehaviour
     {
         if (!useKeyboardInput || character == null || character.IsMoving) return;
         
-        if (UnityEngine.InputSystem.Keyboard.current != null)
+        var keyboard = Keyboard.current;
+        if (keyboard == null) return;
+        
+        if (keyboard.wKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame)
         {
-            var keyboard = UnityEngine.InputSystem.Keyboard.current;
-            
-            if (keyboard.wKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame)
-            {
-                character.MoveUp();
-            }
-            else if (keyboard.sKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame)
-            {
-                character.MoveDown();
-            }
-            else if (keyboard.aKey.wasPressedThisFrame || keyboard.leftArrowKey.wasPressedThisFrame)
-            {
-                character.MoveLeft();
-            }
-            else if (keyboard.dKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame)
-            {
-                character.MoveRight();
-            }
+            character.MoveUp();
         }
-        else
+        else if (keyboard.sKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame)
         {
-            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
-            {
-                character.MoveUp();
-            }
-            else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
-            {
-                character.MoveDown();
-            }
-            else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
-            {
-                character.MoveLeft();
-            }
-            else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
-            {
-                character.MoveRight();
-            }
+            character.MoveDown();
+        }
+        else if (keyboard.aKey.wasPressedThisFrame || keyboard.leftArrowKey.wasPressedThisFrame)
+        {
+            character.MoveLeft();
+        }
+        else if (keyboard.dKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame)
+        {
+            character.MoveRight();
         }
     }
     

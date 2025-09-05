@@ -25,6 +25,14 @@ public class GameSetup : MonoBehaviour
         
         CreateGridBoardIfNeeded();
         
+        CreateGameManagerIfNeeded();
+        
+        CreateHUDIfNeeded();
+        
+        CreateTutorialIfNeeded();
+        
+        CreateVisualEffectsIfNeeded();
+        
         Invoke(nameof(SetupCharacter), 0.1f);
     }
     
@@ -56,8 +64,25 @@ public class GameSetup : MonoBehaviour
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             scaler.matchWidthOrHeight = 0.5f;
             
+            RectTransform canvasRect = canvasGO.GetComponent<RectTransform>();
+            canvasRect.anchorMin = Vector2.zero;
+            canvasRect.anchorMax = Vector2.one;
+            canvasRect.offsetMin = Vector2.zero;
+            canvasRect.offsetMax = Vector2.zero;
+            
             canvasGO.AddComponent<GraphicRaycaster>();
-            Debug.Log("Canvas criado!");
+            Debug.Log("Canvas criado com configurações responsivas!");
+        }
+        else
+        {
+            RectTransform canvasRect = canvas.GetComponent<RectTransform>();
+            if (canvasRect != null)
+            {
+                canvasRect.anchorMin = Vector2.zero;
+                canvasRect.anchorMax = Vector2.one;
+                canvasRect.offsetMin = Vector2.zero;
+                canvasRect.offsetMax = Vector2.zero;
+            }
         }
     }
     
@@ -77,8 +102,8 @@ public class GameSetup : MonoBehaviour
             gridBoardGO.transform.SetParent(canvas.transform, false);
             
             RectTransform rectTransform = gridBoardGO.AddComponent<RectTransform>();
-            rectTransform.anchoredPosition = Vector2.zero;
-            rectTransform.sizeDelta = new Vector2(800, 800);
+            rectTransform.anchoredPosition = new Vector2(0f, -40f);
+            rectTransform.sizeDelta = new Vector2(600, 600);
             rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
             rectTransform.pivot = new Vector2(0.5f, 0.5f);
@@ -137,6 +162,50 @@ public class GameSetup : MonoBehaviour
         if (characterController != null && spawnedCharacter != null && gridBoard != null)
         {
             Debug.Log("CharacterController configurado!");
+        }
+    }
+    
+    private void CreateGameManagerIfNeeded()
+    {
+        GameManager gameManager = FindObjectOfType<GameManager>();
+        if (gameManager == null)
+        {
+            GameObject gameManagerGO = new GameObject("Game Manager");
+            gameManagerGO.AddComponent<GameManager>();
+            Debug.Log("GameManager criado!");
+        }
+    }
+    
+    private void CreateHUDIfNeeded()
+    {
+        GameHUD gameHUD = FindObjectOfType<GameHUD>();
+        if (gameHUD == null)
+        {
+            GameObject hudGO = new GameObject("Game HUD Manager");
+            hudGO.AddComponent<GameHUD>();
+            Debug.Log("GameHUD criado!");
+        }
+    }
+    
+    private void CreateTutorialIfNeeded()
+    {
+        TutorialManager tutorialManager = FindObjectOfType<TutorialManager>();
+        if (tutorialManager == null)
+        {
+            GameObject tutorialGO = new GameObject("Tutorial Manager");
+            tutorialGO.AddComponent<TutorialManager>();
+            Debug.Log("TutorialManager criado!");
+        }
+    }
+    
+    private void CreateVisualEffectsIfNeeded()
+    {
+        VisualEffectsManager effectsManager = FindObjectOfType<VisualEffectsManager>();
+        if (effectsManager == null)
+        {
+            GameObject effectsGO = new GameObject("Visual Effects Manager");
+            effectsGO.AddComponent<VisualEffectsManager>();
+            Debug.Log("VisualEffectsManager criado!");
         }
     }
     

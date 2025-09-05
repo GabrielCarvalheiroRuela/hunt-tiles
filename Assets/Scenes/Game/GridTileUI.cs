@@ -30,6 +30,11 @@ public class GridTileUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         highlightColor = highlight;
         occupiedColor = occupied;
         originalColor = normal;
+        
+        if (tileImage != null)
+        {
+            tileImage.sprite = CreateTileSprite(normal);
+        }
     }
     
     void Awake()
@@ -129,5 +134,58 @@ public class GridTileUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         {
             GridBoard.Instance?.OnTileClicked(this);
         }
+    }
+    
+    private Sprite CreateTileSprite(Color baseColor)
+    {
+        int size = 32;
+        Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        
+        Color lightColor = new Color(
+            Mathf.Min(1f, baseColor.r * 1.2f),
+            Mathf.Min(1f, baseColor.g * 1.2f), 
+            Mathf.Min(1f, baseColor.b * 1.2f),
+            baseColor.a
+        );
+        
+        Color darkColor = new Color(
+            baseColor.r * 0.8f,
+            baseColor.g * 0.8f,
+            baseColor.b * 0.8f,
+            baseColor.a
+        );
+        
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                Color pixelColor = baseColor;
+                
+                float noise = Mathf.PerlinNoise(x * 0.1f, y * 0.1f);
+                if (noise > 0.6f)
+                {
+                    pixelColor = lightColor;
+                }
+                else if (noise < 0.4f)
+                {
+                    pixelColor = darkColor;
+                }
+                
+                if (x == 0 || x == size - 1 || y == 0 || y == size - 1)
+                {
+                    pixelColor = Color.Lerp(pixelColor, darkColor, 0.3f);
+                }
+                
+                if (x % 8 == 0 || (x + y) % 12 == 0)
+                {
+                    pixelColor = Color.Lerp(pixelColor, darkColor, 0.2f);
+                }
+                
+                texture.SetPixel(x, y, pixelColor);
+            }
+        }
+        
+        texture.Apply();
+        return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
     }
 }
