@@ -29,8 +29,6 @@ public class GameSetup : MonoBehaviour
         
         CreateHUDIfNeeded();
         
-        CreateTutorialIfNeeded();
-        
         CreateVisualEffectsIfNeeded();
         
         Invoke(nameof(SetupCharacter), 0.1f);
@@ -184,17 +182,6 @@ public class GameSetup : MonoBehaviour
             GameObject hudGO = new GameObject("Game HUD Manager");
             hudGO.AddComponent<GameHUD>();
             Debug.Log("GameHUD criado!");
-        }
-    }
-    
-    private void CreateTutorialIfNeeded()
-    {
-        TutorialManager tutorialManager = FindObjectOfType<TutorialManager>();
-        if (tutorialManager == null)
-        {
-            GameObject tutorialGO = new GameObject("Tutorial Manager");
-            tutorialGO.AddComponent<TutorialManager>();
-            Debug.Log("TutorialManager criado!");
         }
     }
     

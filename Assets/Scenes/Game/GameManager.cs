@@ -24,9 +24,6 @@ public class GameManager : MonoBehaviour
     
     [Header("Obstacle Spawn Settings")]
     [SerializeField] private int wallCount = 4;
-    [SerializeField] private int holeCount = 2;
-    [SerializeField] private int iceCount = 3;
-    [SerializeField] private int teleporterCount = 1;
     
     [Header("UI References")]
     [SerializeField] private Text scoreText;
@@ -189,8 +186,7 @@ public class GameManager : MonoBehaviour
                     !visited[nextX, nextY])
                 {
                     // Verificar se não há obstáculo bloqueando
-                    if (!IsObstacleAt(nextX, nextY, ObstacleType.Wall) && 
-                        !IsObstacleAt(nextX, nextY, ObstacleType.Hole))
+                    if (!IsObstacleAt(nextX, nextY, ObstacleType.Wall))
                     {
                         visited[nextX, nextY] = true;
                         queue.Enqueue(new Vector2Int(nextX, nextY));
@@ -237,13 +233,7 @@ public class GameManager : MonoBehaviour
         
         SpawnObstaclesOfType(ObstacleType.Wall, wallCount, safePositions);
         
-        SpawnObstaclesOfType(ObstacleType.Hole, holeCount, safePositions);
-        
-        SpawnObstaclesOfType(ObstacleType.Ice, iceCount, safePositions);
-        
-        SpawnTeleporters(teleporterCount, safePositions);
-        
-        Debug.Log($"Obstáculos criados: {wallCount} paredes, {holeCount} buracos, {iceCount} gelo, {teleporterCount} teleporters");
+        Debug.Log($"Obstáculos criados: {wallCount} paredes");
     }
     
     private void SpawnObstaclesOfType(ObstacleType type, int count, List<Vector2Int> availablePositions)
@@ -306,24 +296,6 @@ public class GameManager : MonoBehaviour
         return adjacentWalls >= 2;
     }
     
-    private void SpawnTeleporters(int count, List<Vector2Int> availablePositions)
-    {
-        int pairs = count / 2;
-        
-        for (int i = 0; i < pairs && availablePositions.Count >= 2; i++)
-        {
-            int index1 = Random.Range(0, availablePositions.Count);
-            Vector2Int pos1 = availablePositions[index1];
-            availablePositions.RemoveAt(index1);
-            
-            int index2 = Random.Range(0, availablePositions.Count);
-            Vector2Int pos2 = availablePositions[index2];
-            availablePositions.RemoveAt(index2);
-            
-            CreateConnectedTeleporters(pos1.x, pos1.y, pos2.x, pos2.y);
-        }
-    }
-    
     private void CreateObstacle(ObstacleType type, int x, int y)
     {
         GameObject obstacleGO = new GameObject($"{type}_{x}_{y}");
@@ -343,43 +315,6 @@ public class GameManager : MonoBehaviour
         }
         
         allObstacles.Add(obstacle);
-    }
-    
-    private void CreateConnectedTeleporters(int x1, int y1, int x2, int y2)
-    {
-        GameObject teleporter1GO = new GameObject($"Teleporter_{x1}_{y1}");
-        teleporter1GO.transform.SetParent(gridBoard.transform, false);
-        
-        Obstacle teleporter1 = teleporter1GO.AddComponent<Obstacle>();
-        teleporter1.Initialize(ObstacleType.Teleporter, x1, y1);
-        teleporter1.SetTeleportTarget(x2, y2);
-        
-        GameObject teleporter2GO = new GameObject($"Teleporter_{x2}_{y2}");
-        teleporter2GO.transform.SetParent(gridBoard.transform, false);
-        
-        Obstacle teleporter2 = teleporter2GO.AddComponent<Obstacle>();
-        teleporter2.Initialize(ObstacleType.Teleporter, x2, y2);
-        teleporter2.SetTeleportTarget(x1, y1);
-        
-        GridTileUI tile1 = gridBoard.GetTile(x1, y1);
-        GridTileUI tile2 = gridBoard.GetTile(x2, y2);
-        
-        if (tile1 != null)
-        {
-            RectTransform t1Transform = teleporter1.GetComponent<RectTransform>();
-            RectTransform tile1Transform = tile1.GetComponent<RectTransform>();
-            t1Transform.anchoredPosition = tile1Transform.anchoredPosition;
-        }
-        
-        if (tile2 != null)
-        {
-            RectTransform t2Transform = teleporter2.GetComponent<RectTransform>();
-            RectTransform tile2Transform = tile2.GetComponent<RectTransform>();
-            t2Transform.anchoredPosition = tile2Transform.anchoredPosition;
-        }
-        
-        allObstacles.Add(teleporter1);
-        allObstacles.Add(teleporter2);
     }
     
     private List<Vector2Int> EnsurePathAvailability(List<Vector2Int> availablePositions)
@@ -728,24 +663,8 @@ public class GameManager : MonoBehaviour
         
         switch (obstacle.Type)
         {
-            case ObstacleType.Hole:
-                if (!HasInvincibility())
-                {
-                    GameOver("Você caiu em um buraco!");
-                }
-                break;
-                
-            case ObstacleType.Ice:
-                Debug.Log("Pisou no gelo! O personagem vai deslizar!");
-                break;
-                
-            case ObstacleType.Teleporter:
-                Vector2Int target = obstacle.TeleportTarget;
-                if (target.x >= 0 && target.y >= 0)
-                {
-                    playerCharacter.MoveToPosition(target.x, target.y);
-                    Debug.Log($"Teletransportado para ({target.x}, {target.y})!");
-                }
+            case ObstacleType.Wall:
+                // Walls block movement but have no special interaction
                 break;
         }
     }
