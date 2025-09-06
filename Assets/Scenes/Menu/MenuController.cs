@@ -13,7 +13,7 @@ public class MenuController : MonoBehaviour
     // Botão para iniciar o jogo
     public void PlayGame()
     {
-        SceneManager.LoadScene("SampleScene");
+        SceneManager.LoadScene("Game");
     }
 
     // Botão menu opções
