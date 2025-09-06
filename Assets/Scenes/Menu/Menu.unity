@@ -1178,7 +1178,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.33600003}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.17160034, y: 0.36299992}
+  m_AnchoredPosition: {x: 0.17160034, y: 0.36299896}
   m_SizeDelta: {x: 0.099975586, y: -1.5970001}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &783622787
@@ -2725,9 +2725,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 369974376}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: 
+      - m_Target: {fileID: 369974377}
+        m_TargetAssemblyTypeName: MenuController, Assembly-CSharp
+        m_MethodName: PlayGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2920,7 +2920,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.33600003}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.17160034, y: 0.36299992}
+  m_AnchoredPosition: {x: 0.17160034, y: 0.36299896}
   m_SizeDelta: {x: 0.099975586, y: -1.5970001}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1676901965
