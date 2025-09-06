@@ -127,7 +127,7 @@ public class GameHUD : MonoBehaviour
         layout.spacing = 10;
         
         CreateHUDText("Score", "💰0", panel.transform, ref scoreText);
-        CreateHUDText("Items", "📦0", panel.transform, ref itemsText);
+        CreateHUDText("Level", "�Nível 1", panel.transform, ref itemsText);
         CreateHUDText("Time", "⏱️0:00", panel.transform, ref timeText);
         CreateHUDText("PowerUps", "", panel.transform, ref powerUpText);
     }
@@ -348,8 +348,7 @@ public class GameHUD : MonoBehaviour
         
         if (itemsText != null)
         {
-            int totalCollected = gameManager.CoinsCollected + gameManager.GemsCollected + gameManager.KeysCollected;
-            itemsText.text = $"📦{totalCollected}";
+            itemsText.text = $"🚀Nível {gameManager.CurrentLevel}";
         }
         
         if (timeText != null)
@@ -392,7 +391,7 @@ public class GameHUD : MonoBehaviour
             
             float progress = totalImportantItems > 0 ? (float)collectedItems / totalImportantItems : 0f;
             progressBarFill.fillAmount = progress;
-            progressText.text = $"Progresso: {Mathf.RoundToInt(progress * 100)}%";
+            progressText.text = $"Nível {gameManager.CurrentLevel}: {Mathf.RoundToInt(progress * 100)}%";
         }
     }
     
@@ -435,6 +434,24 @@ public class GameHUD : MonoBehaviour
                                    $"🪙 Moedas: {gameManager.CoinsCollected}\n" +
                                    $"💎 Gemas: {gameManager.GemsCollected}\n" +
                                    $"🗝️ Chaves: {gameManager.KeysCollected}";
+            }
+        }
+    }
+    
+    public void ShowGameCompletionPanel()
+    {
+        if (winPanel != null)
+        {
+            winPanel.SetActive(true);
+            
+            if (winScoreText != null && gameManager != null)
+            {
+                winScoreText.text = $"🏆 JOGO COMPLETADO! 🏆\n\n" +
+                                   $"🎊 Parabéns! Você completou todos os níveis!\n\n" +
+                                   $"💰 Pontuação Final: {gameManager.TotalScore}\n" +
+                                   $"⏱️ Tempo Total: {FormatTime(gameManager.GameTime)}\n" +
+                                   $"🚀 Nível Final: {gameManager.CurrentLevel}\n\n" +
+                                   $"🌟 Você é um mestre! 🌟";
             }
         }
     }

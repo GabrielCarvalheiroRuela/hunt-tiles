@@ -278,8 +278,8 @@ public class BoardCharacter : MonoBehaviour
         {
             if (collectible.GridX == x && collectible.GridY == y && !collectible.IsCollected)
             {
+                Debug.Log($"Coletando {collectible.Type} na posição ({x}, {y})!");
                 collectible.Collect();
-                Debug.Log($"Coletável {collectible.Type} coletado na posição ({x}, {y})!");
             }
         }
     }

@@ -135,6 +135,7 @@ public class Collectible : MonoBehaviour
     {
         if (isCollected) return;
         
+        Debug.Log($"Coletando {type} na posição ({tileX}, {tileY})");
         isCollected = true;
         
         VisualEffectsManager effectsManager = VisualEffectsManager.Instance;
@@ -146,10 +147,14 @@ public class Collectible : MonoBehaviour
         
         StartCoroutine(CollectionAnimation());
         
-        GameManager gameManager = FindObjectOfType<GameManager>();
+        GameManager gameManager = GameManager.Instance;
         if (gameManager != null)
         {
             gameManager.OnCollectibleCollected(this);
+        }
+        else
+        {
+            Debug.LogError("GameManager.Instance é null! Não foi possível notificar a coleta.");
         }
     }
     

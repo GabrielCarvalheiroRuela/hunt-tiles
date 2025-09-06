@@ -13,17 +13,22 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float gameTime = 0f;
     [SerializeField] private bool gameWon = false;
     
+    [Header("Level System")]
+    [SerializeField] private int currentLevel = 1;
+    [SerializeField] private int maxLevel = 10;
+    [SerializeField] private float levelTransitionDelay = 3f;
+    
     [Header("Collectible Spawn Settings")]
-    [SerializeField] private int minCoins = 8;
-    [SerializeField] private int maxCoins = 15;
-    [SerializeField] private int minGems = 3;
-    [SerializeField] private int maxGems = 6;
-    [SerializeField] private int minKeys = 1;
-    [SerializeField] private int maxKeys = 3;
-    [SerializeField] private int powerUpCount = 2;
+    [SerializeField] private int baseMinCoins = 6;
+    [SerializeField] private int baseMaxCoins = 10;
+    [SerializeField] private int baseMinGems = 2;
+    [SerializeField] private int baseMaxGems = 4;
+    [SerializeField] private int baseMinKeys = 1;
+    [SerializeField] private int baseMaxKeys = 2;
+    [SerializeField] private int basePowerUpCount = 1;
     
     [Header("Obstacle Spawn Settings")]
-    [SerializeField] private int wallCount = 4;
+    [SerializeField] private int baseWallCount = 3;
     
     [Header("UI References")]
     [SerializeField] private Text scoreText;
@@ -55,6 +60,7 @@ public class GameManager : MonoBehaviour
     public int KeysCollected => keysCollected;
     public float GameTime => gameTime;
     public bool GameWon => gameWon;
+    public int CurrentLevel => currentLevel;
     
     void Awake()
     {
@@ -76,13 +82,22 @@ public class GameManager : MonoBehaviour
     
     void Update()
     {
-        if (!gameWon)
+        if (!gameWon && IsGameInitialized())
         {
             gameTime += Time.deltaTime;
             UpdateUI();
             UpdatePowerUps();
             CheckWinCondition();
         }
+        else if (!IsGameInitialized() && Time.frameCount % 120 == 0) // Log every 2 seconds if not initialized
+        {
+            Debug.Log($"⚠️ Jogo não inicializado ainda: gridBoard={gridBoard != null}, playerCharacter={playerCharacter != null}, collectibles={allCollectibles.Count}");
+        }
+    }
+    
+    private bool IsGameInitialized()
+    {
+        return gridBoard != null && playerCharacter != null && allCollectibles.Count > 0;
     }
     
     private IEnumerator InitializeGameManager()
@@ -100,7 +115,7 @@ public class GameManager : MonoBehaviour
         SpawnCollectibles();
         SetupUI();
         
-        Debug.Log("GameManager inicializado! Colete todos os itens para vencer!");
+        Debug.Log($"GameManager inicializado! NÍVEL {currentLevel} - Colete todos os itens para avançar!");
     }
     
     private void SpawnCollectibles()
@@ -109,20 +124,23 @@ public class GameManager : MonoBehaviour
         
         List<Vector2Int> availablePositions = GetAvailablePositions();
         
-        int coinCount = Random.Range(minCoins, maxCoins + 1);
+        // Calcular quantidades baseadas no nível
+        int coinCount = Random.Range(GetLevelValue(baseMinCoins), GetLevelValue(baseMaxCoins) + 1);
         SpawnCollectiblesOfType(CollectibleType.Coin, coinCount, availablePositions);
         
-        int gemCount = Random.Range(minGems, maxGems + 1);
+        int gemCount = Random.Range(GetLevelValue(baseMinGems), GetLevelValue(baseMaxGems) + 1);
         SpawnCollectiblesOfType(CollectibleType.Gem, gemCount, availablePositions);
         
-        int keyCount = Random.Range(minKeys, maxKeys + 1);
+        int keyCount = Random.Range(GetLevelValue(baseMinKeys), GetLevelValue(baseMaxKeys) + 1);
         SpawnCollectiblesOfType(CollectibleType.Key, keyCount, availablePositions);
         
+        int powerUpCount = GetLevelValue(basePowerUpCount);
         SpawnCollectiblesOfType(CollectibleType.PowerUp, powerUpCount, availablePositions);
         
         ValidateCollectibleAccessibility();
         
-        Debug.Log($"Coletáveis criados: {coinCount} moedas, {gemCount} gemas, {keyCount} chaves, {powerUpCount} power-ups");
+        Debug.Log($"NÍVEL {currentLevel} - Coletáveis criados: {coinCount} moedas, {gemCount} gemas, {keyCount} chaves, {powerUpCount} power-ups");
+        Debug.Log($"📋 Lista final de coletáveis: {allCollectibles.Count} itens total");
     }
     
     private void ValidateCollectibleAccessibility()
@@ -231,9 +249,10 @@ public class GameManager : MonoBehaviour
         
         List<Vector2Int> safePositions = EnsurePathAvailability(availablePositions);
         
+        int wallCount = GetLevelValue(baseWallCount);
         SpawnObstaclesOfType(ObstacleType.Wall, wallCount, safePositions);
         
-        Debug.Log($"Obstáculos criados: {wallCount} paredes");
+        Debug.Log($"NÍVEL {currentLevel} - Obstáculos criados: {wallCount} paredes");
     }
     
     private void SpawnObstaclesOfType(ObstacleType type, int count, List<Vector2Int> availablePositions)
@@ -423,6 +442,8 @@ public class GameManager : MonoBehaviour
     
     public void OnCollectibleCollected(Collectible collectible)
     {
+        Debug.Log($"🎯 Coletável {collectible.Type} coletado! Valor: {collectible.Value}");
+        
         GameHUD gameHUD = GameHUD.Instance;
         if (gameHUD != null)
         {
@@ -435,27 +456,37 @@ public class GameManager : MonoBehaviour
                 coinsCollected++;
                 AddScore(collectible.Value);
                 PlaySound(coinSound);
+                Debug.Log($"💰 Moedas coletadas: {coinsCollected}");
                 break;
                 
             case CollectibleType.Gem:
                 gemsCollected++;
                 AddScore(collectible.Value);
                 PlaySound(gemSound);
+                Debug.Log($"💎 Gemas coletadas: {gemsCollected}");
                 break;
                 
             case CollectibleType.Key:
                 keysCollected++;
                 AddScore(collectible.Value);
                 PlaySound(keySound);
+                Debug.Log($"🗝️ Chaves coletadas: {keysCollected}");
                 break;
                 
             case CollectibleType.PowerUp:
                 ActivateRandomPowerUp();
                 PlaySound(powerUpSound);
+                Debug.Log($"⚡ Power-up ativado!");
                 break;
         }
         
         allCollectibles.Remove(collectible);
+        Debug.Log($"📋 Lista atualizada: {allCollectibles.Count} coletáveis restantes");
+        
+        // Forçar verificação imediata após coletar item
+        Debug.Log($"🔍 VERIFICAÇÃO IMEDIATA: Chamando CheckWinCondition() após coletar {collectible.Type}");
+        CheckWinCondition();
+        
         UpdateUI();
     }
     
@@ -500,22 +531,183 @@ public class GameManager : MonoBehaviour
     private void CheckWinCondition()
     {
         int remainingImportantItems = 0;
+        int totalCollectibles = allCollectibles.Count;
+        
+        List<string> remainingTypes = new List<string>();
+        
         foreach (Collectible collectible in allCollectibles)
         {
-            if (collectible.Type != CollectibleType.PowerUp)
+            if (collectible.Type == CollectibleType.Coin || 
+                collectible.Type == CollectibleType.Gem || 
+                collectible.Type == CollectibleType.Key)
             {
                 remainingImportantItems++;
+                remainingTypes.Add(collectible.Type.ToString());
             }
         }
         
+        Debug.Log($"🔍 VERIFICANDO NÍVEL {currentLevel}:");
+        Debug.Log($"   📊 {remainingImportantItems} itens importantes restantes de {totalCollectibles} total");
+        Debug.Log($"   � Coletados: {coinsCollected} moedas, {gemsCollected} gemas, {keysCollected} chaves");
+        Debug.Log($"   📋 Tipos restantes: [{string.Join(", ", remainingTypes)}]");
+        Debug.Log($"   🎮 GameWon: {gameWon}, IsGameInitialized: {IsGameInitialized()}");
+        
         if (remainingImportantItems == 0 && !gameWon)
         {
-            WinGame();
+            Debug.Log($"🎉 CONDIÇÃO DE VITÓRIA ATINGIDA! Todos os itens importantes coletados!");
+            
+            if (currentLevel >= maxLevel)
+            {
+                Debug.Log("🏆 JOGO COMPLETADO! Todos os níveis concluídos! 🏆");
+                CompleteGame();
+            }
+            else
+            {
+                Debug.Log($"✅ NÍVEL {currentLevel} CONCLUÍDO! Preparando próximo nível...");
+                AdvanceToNextLevel();
+            }
         }
+        else if (remainingImportantItems > 0)
+        {
+            Debug.Log($"⏳ Ainda faltam {remainingImportantItems} itens para completar o nível.");
+        }
+        else if (gameWon)
+        {
+            Debug.Log($"⏸️ Jogo já foi vencido, não verificando mais condições.");
+        }
+    }
+    
+    private int GetLevelValue(int baseValue)
+    {
+        // Aumenta a dificuldade gradualmente a cada nível
+        float multiplier = 1f + (currentLevel - 1) * 0.3f;
+        return Mathf.RoundToInt(baseValue * multiplier);
+    }
+    
+    private void AdvanceToNextLevel()
+    {
+        gameWon = true; // Impede novas verificações
+        
+        // Calcular bônus do nível
+        int levelBonus = CalculateLevelBonus();
+        totalScore += levelBonus;
+        
+        // Mostrar mensagem de nível completo
+        GameHUD gameHUD = GameHUD.Instance;
+        if (gameHUD != null)
+        {
+            string message = $"🎉 NÍVEL {currentLevel} CONCLUÍDO! 🎉\n" +
+                           $"💰 Bônus: +{levelBonus} pontos\n" +
+                           $"🔥 Próximo: Nível {currentLevel + 1}";
+            gameHUD.ShowTemporaryMessage(message, levelTransitionDelay);
+        }
+        
+        // Avançar para o próximo nível após delay
+        StartCoroutine(TransitionToNextLevel());
+    }
+    
+    private int CalculateLevelBonus()
+    {
+        // Bônus baseado no tempo e nível atual
+        int timeBonus = Mathf.Max(0, 180 - Mathf.RoundToInt(gameTime));
+        int levelMultiplier = currentLevel * 100;
+        return timeBonus + levelMultiplier;
+    }
+    
+    private IEnumerator TransitionToNextLevel()
+    {
+        yield return new WaitForSeconds(levelTransitionDelay);
+        
+        // Preparar próximo nível
+        currentLevel++;
+        
+        // Limpar objetos do nível anterior
+        ClearLevel();
+        
+        // Reinicializar variáveis do nível
+        gameWon = false;
+        coinsCollected = 0;
+        gemsCollected = 0;
+        keysCollected = 0;
+        
+        // Gerar novo nível
+        SpawnObstacles();
+        SpawnCollectibles();
+        
+        // Mostrar mensagem do novo nível
+        GameHUD gameHUD = GameHUD.Instance;
+        if (gameHUD != null)
+        {
+            string message = $"🚀 NÍVEL {currentLevel} INICIADO! 🚀\n" +
+                           $"🎯 Colete todos os itens para avançar!";
+            gameHUD.ShowTemporaryMessage(message, 2f);
+        }
+        
+        Debug.Log($"🆙 NÍVEL {currentLevel} INICIADO! Dificuldade aumentada!");
+    }
+    
+    private void ClearLevel()
+    {
+        // Remover todos os coletáveis existentes
+        foreach (Collectible collectible in allCollectibles)
+        {
+            if (collectible != null)
+            {
+                Destroy(collectible.gameObject);
+            }
+        }
+        allCollectibles.Clear();
+        
+        // Remover todos os obstáculos existentes
+        foreach (Obstacle obstacle in allObstacles)
+        {
+            if (obstacle != null)
+            {
+                Destroy(obstacle.gameObject);
+            }
+        }
+        allObstacles.Clear();
+        
+        Debug.Log("Nível anterior limpo!");
+    }
+    
+    private void CompleteGame()
+    {
+        Debug.Log("🏆 JOGO COMPLETADO! Todos os níveis concluídos! 🏆");
+        gameWon = true;
+        
+        // Bônus de conclusão do jogo
+        int completionBonus = 1000 + (currentLevel * 200);
+        totalScore += completionBonus;
+        
+        PlaySound(winSound);
+        
+        GameHUD gameHUD = GameHUD.Instance;
+        if (gameHUD != null)
+        {
+            gameHUD.ShowGameCompletionPanel();
+        }
+        else if (winPanel != null)
+        {
+            winPanel.SetActive(true);
+            if (winScoreText != null)
+            {
+                winScoreText.text = $"🏆 JOGO COMPLETADO! 🏆\n\n" +
+                                   $"💰 Pontuação Final: {totalScore}\n" +
+                                   $"⏱️ Tempo Total: {FormatTime(gameTime)}\n" +
+                                   $"🏅 Níveis Concluídos: {currentLevel}/{maxLevel}\n" +
+                                   $"🎁 Bônus de Conclusão: {completionBonus}";
+            }
+        }
+        
+        Debug.Log($"JOGO COMPLETO! Pontuação final: {totalScore} pontos, {currentLevel} níveis concluídos!");
     }
     
     private void WinGame()
     {
+        // Este método agora é usado apenas para casos especiais
+        // A progressão normal usa AdvanceToNextLevel() e CompleteGame()
+        Debug.Log("🏆 VITÓRIA ALCANÇADA! 🏆");
         gameWon = true;
         
         int timeBonus = Mathf.Max(0, 300 - Mathf.RoundToInt(gameTime));
@@ -535,6 +727,10 @@ public class GameManager : MonoBehaviour
             {
                 winScoreText.text = $"Pontuação Final: {totalScore}\nTempo: {FormatTime(gameTime)}\nBônus de Tempo: {timeBonus}";
             }
+        }
+        else
+        {
+            Debug.LogWarning("Nem GameHUD nem winPanel foram encontrados!");
         }
         
         Debug.Log($"VITÓRIA! Pontuação final: {totalScore} pontos em {FormatTime(gameTime)}");
