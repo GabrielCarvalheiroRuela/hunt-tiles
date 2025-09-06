@@ -31,9 +31,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int baseWallCount = 3;
     
     [Header("UI References")]
-    [SerializeField] private Text scoreText;
-    [SerializeField] private Text itemsText;
-    [SerializeField] private Text timeText;
     [SerializeField] private GameObject winPanel;
     [SerializeField] private Text winScoreText;
     
@@ -70,6 +67,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            Debug.LogWarning("GameManager duplicado detectado! Destruindo instância duplicada.");
             Destroy(gameObject);
             return;
         }
@@ -85,7 +83,6 @@ public class GameManager : MonoBehaviour
         if (!gameWon && IsGameInitialized())
         {
             gameTime += Time.deltaTime;
-            UpdateUI();
             UpdatePowerUps();
             CheckWinCondition();
         }
@@ -113,7 +110,6 @@ public class GameManager : MonoBehaviour
         
         SpawnObstacles();
         SpawnCollectibles();
-        SetupUI();
         
         Debug.Log($"GameManager inicializado! NÍVEL {currentLevel} - Colete todos os itens para avançar!");
     }
@@ -486,8 +482,6 @@ public class GameManager : MonoBehaviour
         // Forçar verificação imediata após coletar item
         Debug.Log($"🔍 VERIFICAÇÃO IMEDIATA: Chamando CheckWinCondition() após coletar {collectible.Type}");
         CheckWinCondition();
-        
-        UpdateUI();
     }
     
     private void AddScore(int points)
@@ -734,79 +728,6 @@ public class GameManager : MonoBehaviour
         }
         
         Debug.Log($"VITÓRIA! Pontuação final: {totalScore} pontos em {FormatTime(gameTime)}");
-    }
-    
-    private void SetupUI()
-    {
-        if (scoreText == null || itemsText == null || timeText == null)
-        {
-            CreateGameUI();
-        }
-    }
-    
-    private void CreateGameUI()
-    {
-        Canvas canvas = FindObjectOfType<Canvas>();
-        if (canvas == null) return;
-        
-        GameObject uiPanel = new GameObject("Game UI");
-        uiPanel.transform.SetParent(canvas.transform, false);
-        
-        RectTransform panelTransform = uiPanel.AddComponent<RectTransform>();
-        panelTransform.anchorMin = new Vector2(0f, 1f);
-        panelTransform.anchorMax = new Vector2(1f, 1f);
-        panelTransform.pivot = new Vector2(0.5f, 1f);
-        panelTransform.sizeDelta = new Vector2(0f, 80f);
-        panelTransform.anchoredPosition = Vector2.zero;
-        
-        Image background = uiPanel.AddComponent<Image>();
-        background.color = new Color(0f, 0f, 0f, 0.5f);
-        
-        CreateUIText("Score Text", "Pontuação: 0", new Vector2(-300f, -40f), uiPanel.transform);
-        CreateUIText("Items Text", "Itens: 0/0", new Vector2(0f, -40f), uiPanel.transform);
-        CreateUIText("Time Text", "Tempo: 00:00", new Vector2(300f, -40f), uiPanel.transform);
-    }
-    
-    private void CreateUIText(string name, string text, Vector2 position, Transform parent)
-    {
-        GameObject textGO = new GameObject(name);
-        textGO.transform.SetParent(parent, false);
-        
-        RectTransform textTransform = textGO.AddComponent<RectTransform>();
-        textTransform.anchoredPosition = position;
-        textTransform.sizeDelta = new Vector2(200f, 30f);
-        
-        Text textComponent = textGO.AddComponent<Text>();
-        textComponent.text = text;
-        textComponent.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        textComponent.fontSize = 16;
-        textComponent.color = Color.white;
-        textComponent.alignment = TextAnchor.MiddleCenter;
-        
-        if (name.Contains("Score")) scoreText = textComponent;
-        else if (name.Contains("Items")) itemsText = textComponent;
-        else if (name.Contains("Time")) timeText = textComponent;
-    }
-    
-    private void UpdateUI()
-    {
-        if (scoreText != null)
-            scoreText.text = $"Pontuação: {totalScore}";
-            
-        if (itemsText != null)
-        {
-            int totalItems = coinsCollected + gemsCollected + keysCollected;
-            int totalSpawned = 0;
-            foreach (Collectible c in allCollectibles)
-            {
-                if (c.Type != CollectibleType.PowerUp) totalSpawned++;
-            }
-            totalSpawned += totalItems;
-            itemsText.text = $"Itens: {totalItems}/{totalSpawned}";
-        }
-            
-        if (timeText != null)
-            timeText.text = $"Tempo: {FormatTime(gameTime)}";
     }
     
     private string FormatTime(float time)

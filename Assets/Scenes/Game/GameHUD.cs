@@ -40,6 +40,7 @@ public class GameHUD : MonoBehaviour
         }
         else
         {
+            Debug.LogWarning("GameHUD duplicado detectado! Destruindo instância duplicada.");
             Destroy(gameObject);
             return;
         }
@@ -80,6 +81,13 @@ public class GameHUD : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
         }
         
+        // Verificar se já foi inicializado para evitar duplicação
+        if (hudPanel != null)
+        {
+            Debug.LogWarning("HUD já foi inicializado, evitando duplicação.");
+            yield break;
+        }
+        
         CreateHUDElements();
         
         ApplySafeArea();
@@ -91,6 +99,17 @@ public class GameHUD : MonoBehaviour
     {
         Canvas canvas = FindObjectOfType<Canvas>();
         if (canvas == null) return;
+        
+        // Verificar se já existem elementos HUD duplicados antes de criar novos
+        GameObject[] existingHUDs = GameObject.FindGameObjectsWithTag("Untagged");
+        foreach (GameObject obj in existingHUDs)
+        {
+            if (obj.name == "Game HUD" && obj != hudPanel)
+            {
+                Debug.LogWarning($"Removendo HUD duplicado: {obj.name}");
+                Destroy(obj);
+            }
+        }
         
         CreateMainHUDPanel(canvas.transform);
         
@@ -127,7 +146,7 @@ public class GameHUD : MonoBehaviour
         layout.spacing = 10;
         
         CreateHUDText("Score", "💰0", panel.transform, ref scoreText);
-        CreateHUDText("Level", "�Nível 1", panel.transform, ref itemsText);
+        CreateHUDText("Level", "🚀Nível 1", panel.transform, ref itemsText);
         CreateHUDText("Time", "⏱️0:00", panel.transform, ref timeText);
         CreateHUDText("PowerUps", "", panel.transform, ref powerUpText);
     }
