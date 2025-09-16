@@ -30,6 +30,7 @@ public class CharacterController : MonoBehaviour
     
     private void HandleKeyboardInput()
     {
+        //todo: mudar para o system do unity
         if (!useKeyboardInput || character == null || character.IsMoving) return;
         
         var keyboard = Keyboard.current;
