@@ -1797,7 +1797,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1578792512
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2462,7 +2462,7 @@ MonoBehaviour:
   gridBoard: {fileID: 2100000005}
   gameSetup: {fileID: 0}
   gameUI: {fileID: 1738457054}
-  pauseMenu: {fileID: 0}
+  pauseMenu: {fileID: 1578792511}
 --- !u!1 &2100000004
 GameObject:
   m_ObjectHideFlags: 0
