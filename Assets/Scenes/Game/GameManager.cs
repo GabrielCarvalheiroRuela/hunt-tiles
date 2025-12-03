@@ -112,6 +112,14 @@ public class GameManager : MonoBehaviour
         SpawnCollectibles();
         
         Debug.Log($"GameManager inicializado! NÍVEL {currentLevel} - Colete todos os itens para avançar!");
+
+        GameHUD gameHUD = GameHUD.Instance;
+        if (gameHUD != null)
+        {
+            string startMessage = $"🚀 NÍVEL {currentLevel} INICIANDO!\nColete todos os itens para avançar!";
+            gameHUD.ShowTemporaryMessage(startMessage, 3f);
+        }
+
     }
     
     private void SpawnCollectibles()
