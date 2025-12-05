@@ -12,9 +12,11 @@ public class Inimigo : MonoBehaviour
     [Header("Configurações")]
     [SerializeField] private int posicaoX = 0;
     [SerializeField] private int posicaoY = 0;
-    [SerializeField] private float velocidadeMovimento = 0.5f;
-    [SerializeField] private float intervaloMovimento = 1.2f;
+    [SerializeField] private float velocidadeMovimento = 0.35f;
+    [SerializeField] private float intervaloMovimento = 0.8f;
     [SerializeField] private int dano = 1;
+    [SerializeField] private float chanceMovimentoDuplo = 0.25f; // 25% chance de mover 2x
+    [SerializeField] private bool usarPathfinding = true;
     #endregion
 
     #region Visual
@@ -418,13 +420,27 @@ public class Inimigo : MonoBehaviour
 
     private IEnumerator RotinaPerseguicao()
     {
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(1f);
 
-        Debug.Log($"Inimigo {gameObject.name} iniciando perseguição");
+        Debug.Log($"Inimigo {gameObject.name} iniciando perseguição agressiva");
 
         while (ativo)
         {
-            yield return new WaitForSeconds(intervaloMovimento);
+            float intervaloAtual = intervaloMovimento;
+            if (alvo != null)
+            {
+                float distancia = Vector2.Distance(
+                    new Vector2(posicaoX, posicaoY),
+                    new Vector2(alvo.PosicaoX, alvo.PosicaoY)
+                );
+
+                if (distancia <= 3f)
+                {
+                    intervaloAtual *= 0.5f + (distancia / 6f);
+                }
+            }
+            
+            yield return new WaitForSeconds(intervaloAtual);
 
             GerenciadorJogo gerenciador = GerenciadorJogo.Instancia;
             if (gerenciador == null || gerenciador.JogoVencido || gerenciador.JogoPerdido)
@@ -446,9 +462,30 @@ public class Inimigo : MonoBehaviour
                 }
                 else
                 {
-                    MoverEmDirecaoAoAlvo();
+                    if (Random.value < chanceMovimentoDuplo)
+                    {
+                        yield return StartCoroutine(MoverEmDirecaoAoAlvoComRetorno());
+                        yield return new WaitForSeconds(0.15f);
+                        if (!estaMovendo && ativo)
+                        {
+                            yield return StartCoroutine(MoverEmDirecaoAoAlvoComRetorno());
+                        }
+                    }
+                    else
+                    {
+                        MoverEmDirecaoAoAlvo();
+                    }
                 }
             }
+        }
+    }
+
+    private IEnumerator MoverEmDirecaoAoAlvoComRetorno()
+    {
+        MoverEmDirecaoAoAlvo();
+        while (estaMovendo)
+        {
+            yield return null;
         }
     }
 
@@ -456,11 +493,17 @@ public class Inimigo : MonoBehaviour
     {
         if (alvo == null || tabuleiro == null)
         {
-            Debug.LogWarning($"Inimigo {gameObject.name}: alvo={alvo != null}, tabuleiro={tabuleiro != null}");
-            return;
+            if (alvo == null) alvo = Personagem.Instancia ?? FindObjectOfType<Personagem>();
+            if (tabuleiro == null) tabuleiro = Tabuleiro.Instancia ?? FindObjectOfType<Tabuleiro>();
+            
+            if (alvo == null || tabuleiro == null)
+            {
+                Debug.LogWarning($"Inimigo {gameObject.name}: alvo={alvo != null}, tabuleiro={tabuleiro != null}");
+                return;
+            }
         }
 
-        Vector2Int melhorMovimento = EncontrarMelhorMovimento(alvo.PosicaoX, alvo.PosicaoY, true);
+        Vector2Int melhorMovimento = CalcularMelhorDirecao();
         
         if (melhorMovimento != Vector2Int.zero)
         {
@@ -471,11 +514,130 @@ public class Inimigo : MonoBehaviour
             {
                 StartCoroutine(MoverPara(novoX, novoY));
             }
+            else
+            {
+                TentarMovimentoAlternativo(melhorMovimento);
+            }
         }
         else
         {
             TentarMovimentoAleatorio();
         }
+    }
+
+    private Vector2Int CalcularMelhorDirecao()
+    {
+        if (alvo == null) return Vector2Int.zero;
+        
+        int alvoX = alvo.PosicaoX;
+        int alvoY = alvo.PosicaoY;
+        
+        int deltaX = alvoX - posicaoX;
+        int deltaY = alvoY - posicaoY;
+        
+        if (deltaX == 0 && deltaY == 0) return Vector2Int.zero;
+        
+        List<Vector2Int> direcoesPrioritarias = new List<Vector2Int>();
+        
+        bool priorizarHorizontal = Mathf.Abs(deltaX) > Mathf.Abs(deltaY);
+        
+        if (priorizarHorizontal)
+        {
+            if (deltaX > 0) direcoesPrioritarias.Add(Vector2Int.right);
+            else if (deltaX < 0) direcoesPrioritarias.Add(Vector2Int.left);
+            
+            if (deltaY > 0) direcoesPrioritarias.Add(Vector2Int.up);
+            else if (deltaY < 0) direcoesPrioritarias.Add(Vector2Int.down);
+            
+            if (deltaY >= 0) direcoesPrioritarias.Add(Vector2Int.down);
+            else direcoesPrioritarias.Add(Vector2Int.up);
+            
+            if (deltaX >= 0) direcoesPrioritarias.Add(Vector2Int.left);
+            else direcoesPrioritarias.Add(Vector2Int.right);
+        }
+        else
+        {
+            if (deltaY > 0) direcoesPrioritarias.Add(Vector2Int.up);
+            else if (deltaY < 0) direcoesPrioritarias.Add(Vector2Int.down);
+            
+            if (deltaX > 0) direcoesPrioritarias.Add(Vector2Int.right);
+            else if (deltaX < 0) direcoesPrioritarias.Add(Vector2Int.left);
+            
+            if (deltaX >= 0) direcoesPrioritarias.Add(Vector2Int.left);
+            else direcoesPrioritarias.Add(Vector2Int.right);
+            
+            if (deltaY >= 0) direcoesPrioritarias.Add(Vector2Int.down);
+            else direcoesPrioritarias.Add(Vector2Int.up);
+        }
+        
+        List<Vector2Int> direcoesFinal = new List<Vector2Int>();
+        foreach (var dir in direcoesPrioritarias)
+        {
+            if (!direcoesFinal.Contains(dir))
+            {
+                direcoesFinal.Add(dir);
+            }
+        }
+        
+        foreach (var dir in direcoesFinal)
+        {
+            int novoX = posicaoX + dir.x;
+            int novoY = posicaoY + dir.y;
+            
+            if (PodeMoverPara(novoX, novoY))
+            {
+                return dir;
+            }
+        }
+        
+        return Vector2Int.zero;
+    }
+
+    private void TentarMovimentoAlternativo(Vector2Int direcaoBloqueada)
+    {
+        Vector2Int[] alternativas;
+        
+        if (direcaoBloqueada.x != 0)
+        {
+            alternativas = new Vector2Int[] { Vector2Int.up, Vector2Int.down };
+        }
+        else
+        {
+            alternativas = new Vector2Int[] { Vector2Int.right, Vector2Int.left };
+        }
+        
+        if (alvo != null)
+        {
+            System.Array.Sort(alternativas, (a, b) =>
+            {
+                float distA = Vector2.Distance(
+                    new Vector2(posicaoX + a.x, posicaoY + a.y),
+                    new Vector2(alvo.PosicaoX, alvo.PosicaoY)
+                );
+                float distB = Vector2.Distance(
+                    new Vector2(posicaoX + b.x, posicaoY + b.y),
+                    new Vector2(alvo.PosicaoX, alvo.PosicaoY)
+                );
+                return distA.CompareTo(distB);
+            });
+        }
+        
+        foreach (var dir in alternativas)
+        {
+            int novoX = posicaoX + dir.x;
+            int novoY = posicaoY + dir.y;
+            
+            if (PodeMoverPara(novoX, novoY))
+            {
+                StartCoroutine(MoverPara(novoX, novoY));
+                return;
+            }
+        }
+    }
+
+    private Vector2Int EncontrarMovimentoComPredicao()
+    {
+        return CalcularMelhorDirecao();
     }
 
     private void TentarMovimentoAleatorio()
@@ -608,18 +770,27 @@ public class Inimigo : MonoBehaviour
         float tempo = 0f;
         float duracao = velocidadeMovimento;
 
+        Vector3 escalaOriginal = retanguloTransform.localScale;
+
         while (tempo < duracao)
         {
             tempo += Time.deltaTime;
             float t = tempo / duracao;
             
-            t = t * t * (3f - 2f * t);
+            float tCurva = t < 0.5f 
+                ? 2f * t * t 
+                : 1f - Mathf.Pow(-2f * t + 2f, 2f) / 2f;
             
-            retanguloTransform.anchoredPosition = Vector2.Lerp(posInicial, posFinal, t);
+            retanguloTransform.anchoredPosition = Vector2.Lerp(posInicial, posFinal, tCurva);
+            
+            float escalaBonus = Mathf.Sin(t * Mathf.PI) * 0.15f;
+            retanguloTransform.localScale = escalaOriginal * (1f + escalaBonus);
+            
             yield return null;
         }
 
         retanguloTransform.anchoredPosition = posFinal;
+        retanguloTransform.localScale = escalaOriginal;
         posicaoX = novoX;
         posicaoY = novoY;
 
