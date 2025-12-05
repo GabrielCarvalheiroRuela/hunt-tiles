@@ -18,14 +18,14 @@ public class AutoGameSetup
         Scene currentScene = SceneManager.GetActiveScene();
         if (currentScene.name != "Game") return;
         
-        // Verifica se CarregarJogo existe na cena
-        CarregarJogo carregarJogo = Object.FindObjectOfType<CarregarJogo>();
-        if (carregarJogo == null)
+        // Verifica se GerenciadorJogo existe na cena
+        GerenciadorJogo gerenciador = Object.FindObjectOfType<GerenciadorJogo>();
+        if (gerenciador == null)
         {
-            GameObject jogoGO = new GameObject("Jogo");
-            jogoGO.AddComponent<CarregarJogo>();
+            GameObject go = new GameObject("GerenciadorJogo");
+            go.AddComponent<GerenciadorJogo>();
             
-            Debug.Log("CarregarJogo adicionado automaticamente à cena Game!");
+            Debug.Log("GerenciadorJogo adicionado automaticamente à cena Game!");
         }
     }
 }

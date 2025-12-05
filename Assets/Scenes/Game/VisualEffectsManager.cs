@@ -6,8 +6,8 @@ public class VisualEffectsManager : MonoBehaviour
 {
     [Header("Effect Settings")]
     [SerializeField] private GameObject popupTextPrefab;
-    [SerializeField] private float popupDuration = 1.5f;
-    [SerializeField] private float popupMoveDistance = 50f;
+    [SerializeField] private float popupDuration = 0.6f;  // Mais rápido
+    [SerializeField] private float popupMoveDistance = 30f;  // Menor movimento
     
     public static VisualEffectsManager Instance { get; private set; }
     
@@ -47,11 +47,11 @@ public class VisualEffectsManager : MonoBehaviour
         prefab.SetActive(false);
         
         RectTransform rectTransform = prefab.AddComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(200f, 50f);
+        rectTransform.sizeDelta = new Vector2(80f, 30f);  // Menor
         
         Text text = prefab.AddComponent<Text>();
         text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        text.fontSize = 20;
+        text.fontSize = 14;  // Fonte menor
         text.color = Color.white;
         text.alignment = TextAnchor.MiddleCenter;
         text.fontStyle = FontStyle.Bold;
@@ -118,9 +118,12 @@ public class VisualEffectsManager : MonoBehaviour
             
             transform.anchoredPosition = Vector2.Lerp(startPos, endPos, progress);
             
-            text.color = Color.Lerp(startColor, endColor, progress);
+            // Fade out mais rápido na segunda metade
+            float fadeProgress = Mathf.Clamp01((progress - 0.3f) / 0.7f);
+            text.color = Color.Lerp(startColor, endColor, fadeProgress);
             
-            float scale = 1f + (progress * 0.5f);
+            // Escala sutil
+            float scale = 1f + (progress * 0.2f);
             transform.localScale = Vector3.one * scale;
             
             elapsedTime += Time.deltaTime;
