@@ -12,6 +12,7 @@ public class InterfaceJogo : MonoBehaviour
     #region Elementos de UI
     [Header("Painéis")]
     [SerializeField] private GameObject painelHUD;
+    [SerializeField] private GameObject painelTutorial;
     [SerializeField] private GameObject painelVitoria;
     [SerializeField] private GameObject painelDerrota;
     [SerializeField] private GameObject painelMensagem;
@@ -149,6 +150,7 @@ public class InterfaceJogo : MonoBehaviour
 
         LimparHUDsAntigos();
         CriarPainelPrincipal(canvas.transform);
+        CriarPainelTutorial(canvas.transform);
         CriarAreaMensagens(canvas.transform);
         CriarPainelVitoria(canvas.transform);
         
@@ -157,11 +159,11 @@ public class InterfaceJogo : MonoBehaviour
 
     private void LimparHUDsAntigos()
     {
-        string[] nomesAntigos = { "Game HUD", "HUD", "Progress Bar Container", "Painel HUD" };
+        string[] nomesAntigos = { "Game HUD", "HUD", "Progress Bar Container", "Painel HUD", "Painel Tutorial" };
         foreach (string nome in nomesAntigos)
         {
             GameObject antigo = GameObject.Find(nome);
-            if (antigo != null && antigo != painelHUD)
+            if (antigo != null && antigo != painelHUD && antigo != painelTutorial)
             {
                 Destroy(antigo);
             }
@@ -211,27 +213,40 @@ public class InterfaceJogo : MonoBehaviour
         float tabuleiroAltura = tabuleiroMax.y - tabuleiroMin.y;
         float tabuleiroCentroY = (tabuleiroMax.y + tabuleiroMin.y) / 2f;
         float tabuleiroDireita = tabuleiroMax.x;
+        float tabuleiroEsquerda = tabuleiroMin.x;
 
+        // Posicionar HUD à direita do tabuleiro
         RectTransform hudRect = painelHUD.GetComponent<RectTransform>();
+        PosicionarAoLadoDoTabuleiro(hudRect, tabuleiroDireita, tabuleiroCentroY, tabuleiroAltura, true);
         
-        // Posicionar HUD exatamente ao lado direito do tabuleiro, com mesma altura
-        PosicionarAoLadoDoTabuleiro(hudRect, tabuleiroDireita, tabuleiroCentroY, tabuleiroAltura);
+        // Posicionar Tutorial à esquerda do tabuleiro
+        if (painelTutorial != null)
+        {
+            RectTransform tutorialRect = painelTutorial.GetComponent<RectTransform>();
+            PosicionarAoLadoDoTabuleiro(tutorialRect, tabuleiroEsquerda, tabuleiroCentroY, tabuleiroAltura, false);
+        }
     }
 
-    private void PosicionarAoLadoDoTabuleiro(RectTransform hudRect, float tabuleiroX, float tabuleiroCentroY, float tabuleiroAltura)
+    private void PosicionarAoLadoDoTabuleiro(RectTransform rect, float tabuleiroX, float tabuleiroCentroY, float tabuleiroAltura, bool ladoDireito)
     {
-        // Largura do HUD
-        float larguraHUD = 150f;
+        float largura = 150f;
         float margem = 12f;
 
-        // Usar ancoragem central para posicionamento absoluto
-        hudRect.anchorMin = new Vector2(0.5f, 0.5f);
-        hudRect.anchorMax = new Vector2(0.5f, 0.5f);
-        hudRect.pivot = new Vector2(0f, 0.5f); // Pivot na esquerda para alinhar ao tabuleiro
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
         
-        // Posicionar exatamente à direita do tabuleiro
-        hudRect.anchoredPosition = new Vector2(tabuleiroX + margem, tabuleiroCentroY);
-        hudRect.sizeDelta = new Vector2(larguraHUD, tabuleiroAltura);
+        if (ladoDireito)
+        {
+            rect.pivot = new Vector2(0f, 0.5f);
+            rect.anchoredPosition = new Vector2(tabuleiroX + margem, tabuleiroCentroY);
+        }
+        else
+        {
+            rect.pivot = new Vector2(1f, 0.5f);
+            rect.anchoredPosition = new Vector2(tabuleiroX - margem, tabuleiroCentroY);
+        }
+        
+        rect.sizeDelta = new Vector2(largura, tabuleiroAltura);
     }
 
     private void PosicionarLateral(RectTransform hudRect, float tabuleiroX, float canvasWidth, float canvasHeight, float margem)
@@ -349,6 +364,304 @@ public class InterfaceJogo : MonoBehaviour
         CriarItemHUDCompacto(conteudo.transform, "TEMPO", ref textoTempo, corTexto, 16, false);
         CriarBarraProgressoCompacta(conteudo.transform);
     }
+
+    #region Painel Tutorial
+    private void CriarPainelTutorial(Transform parent)
+    {
+        GameObject painel = new GameObject("Painel Tutorial");
+        painel.transform.SetParent(parent, false);
+
+        RectTransform rt = painel.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(1f, 0.5f);
+        rt.sizeDelta = new Vector2(150f, 400f);
+        rt.anchoredPosition = new Vector2(-200f, 0f);
+
+        Image fundo = painel.AddComponent<Image>();
+        fundo.color = new Color(0.18f, 0.12f, 0.07f, 1f);
+
+        Outline bordaExterna = painel.AddComponent<Outline>();
+        bordaExterna.effectColor = new Color(0.75f, 0.6f, 0.3f, 0.8f);
+        bordaExterna.effectDistance = new Vector2(2f, 2f);
+        
+        Shadow sombraPainel = painel.AddComponent<Shadow>();
+        sombraPainel.effectColor = new Color(0f, 0f, 0f, 0.7f);
+        sombraPainel.effectDistance = new Vector2(-6f, -6f);
+
+        painelTutorial = painel;
+
+        GameObject bordaInterna = new GameObject("BordaInterna");
+        bordaInterna.transform.SetParent(painel.transform, false);
+        
+        RectTransform rtBorda = bordaInterna.AddComponent<RectTransform>();
+        rtBorda.anchorMin = Vector2.zero;
+        rtBorda.anchorMax = Vector2.one;
+        rtBorda.offsetMin = new Vector2(2f, 2f);
+        rtBorda.offsetMax = new Vector2(-2f, -2f);
+        
+        Image imgBorda = bordaInterna.AddComponent<Image>();
+        imgBorda.color = new Color(0.35f, 0.25f, 0.15f, 1f);
+        
+        Outline contornoBorda = bordaInterna.AddComponent<Outline>();
+        contornoBorda.effectColor = new Color(0.5f, 0.4f, 0.25f, 0.6f);
+        contornoBorda.effectDistance = new Vector2(-1f, 1f);
+
+        GameObject conteudo = new GameObject("Conteudo");
+        conteudo.transform.SetParent(painel.transform, false);
+        
+        RectTransform rtConteudo = conteudo.AddComponent<RectTransform>();
+        rtConteudo.anchorMin = Vector2.zero;
+        rtConteudo.anchorMax = Vector2.one;
+        rtConteudo.offsetMin = new Vector2(3f, 3f);
+        rtConteudo.offsetMax = new Vector2(-3f, -3f);
+
+        VerticalLayoutGroup layout = conteudo.AddComponent<VerticalLayoutGroup>();
+        layout.padding = new RectOffset(4, 4, 4, 4);
+        layout.spacing = 3f;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = true;
+        layout.childAlignment = TextAnchor.UpperCenter;
+
+        CriarTituloTutorial(conteudo.transform);
+        CriarSecaoObjetivo(conteudo.transform);
+        CriarSecaoControles(conteudo.transform);
+        CriarSecaoItens(conteudo.transform);
+        CriarSecaoDicas(conteudo.transform);
+    }
+
+    private void CriarTituloTutorial(Transform parent)
+    {
+        GameObject titulo = new GameObject("TituloTutorial");
+        titulo.transform.SetParent(parent, false);
+        
+        LayoutElement le = titulo.AddComponent<LayoutElement>();
+        le.preferredHeight = 24f;
+        le.flexibleWidth = 1f;
+        
+        Image fundoTitulo = titulo.AddComponent<Image>();
+        fundoTitulo.color = new Color(0.45f, 0.32f, 0.2f, 0.6f);
+        
+        GameObject textoObj = new GameObject("Texto");
+        textoObj.transform.SetParent(titulo.transform, false);
+        
+        RectTransform rtTexto = textoObj.AddComponent<RectTransform>();
+        rtTexto.anchorMin = Vector2.zero;
+        rtTexto.anchorMax = Vector2.one;
+        rtTexto.offsetMin = Vector2.zero;
+        rtTexto.offsetMax = Vector2.zero;
+        
+        Text textoTitulo = textoObj.AddComponent<Text>();
+        textoTitulo.text = "📖 TUTORIAL";
+        textoTitulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textoTitulo.fontSize = 22;
+        textoTitulo.fontStyle = FontStyle.Bold;
+        textoTitulo.color = new Color(1f, 0.9f, 0.65f);
+        textoTitulo.alignment = TextAnchor.MiddleCenter;
+        
+        Outline brilho = textoObj.AddComponent<Outline>();
+        brilho.effectColor = new Color(0.15f, 0.1f, 0.05f, 0.9f);
+        brilho.effectDistance = new Vector2(1f, 1f);
+    }
+
+    private void CriarSecaoObjetivo(Transform parent)
+    {
+        GameObject secao = new GameObject("SecaoObjetivo");
+        secao.transform.SetParent(parent, false);
+        
+        LayoutElement le = secao.AddComponent<LayoutElement>();
+        le.preferredHeight = 50f;
+        le.flexibleWidth = 1f;
+        
+        Image fundo = secao.AddComponent<Image>();
+        fundo.color = new Color(0.38f, 0.26f, 0.16f, 0.5f);
+        
+        // Título da seção
+        GameObject tituloObj = new GameObject("Titulo");
+        tituloObj.transform.SetParent(secao.transform, false);
+        
+        RectTransform rtTitulo = tituloObj.AddComponent<RectTransform>();
+        rtTitulo.anchorMin = new Vector2(0f, 0.7f);
+        rtTitulo.anchorMax = new Vector2(1f, 1f);
+        rtTitulo.offsetMin = new Vector2(4f, 0f);
+        rtTitulo.offsetMax = new Vector2(-4f, 0f);
+        
+        Text textoTitulo = tituloObj.AddComponent<Text>();
+        textoTitulo.text = "🎯 OBJETIVO";
+        textoTitulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textoTitulo.fontSize = 16;
+        textoTitulo.fontStyle = FontStyle.Bold;
+        textoTitulo.color = new Color(1f, 0.85f, 0.4f);
+        textoTitulo.alignment = TextAnchor.MiddleLeft;
+        
+        // Conteúdo
+        GameObject conteudoObj = new GameObject("Conteudo");
+        conteudoObj.transform.SetParent(secao.transform, false);
+        
+        RectTransform rtConteudo = conteudoObj.AddComponent<RectTransform>();
+        rtConteudo.anchorMin = new Vector2(0f, 0f);
+        rtConteudo.anchorMax = new Vector2(1f, 0.7f);
+        rtConteudo.offsetMin = new Vector2(4f, 2f);
+        rtConteudo.offsetMax = new Vector2(-4f, 0f);
+        
+        Text textoConteudo = conteudoObj.AddComponent<Text>();
+        textoConteudo.text = "Colete todas as\nmoedas 🪙 para\nvencer!";
+        textoConteudo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textoConteudo.fontSize = 14;
+        textoConteudo.color = new Color(0.9f, 0.85f, 0.75f);
+        textoConteudo.alignment = TextAnchor.UpperLeft;
+    }
+
+    private void CriarSecaoControles(Transform parent)
+    {
+        GameObject secao = new GameObject("SecaoControles");
+        secao.transform.SetParent(parent, false);
+        
+        LayoutElement le = secao.AddComponent<LayoutElement>();
+        le.preferredHeight = 60f;
+        le.flexibleWidth = 1f;
+        
+        Image fundo = secao.AddComponent<Image>();
+        fundo.color = new Color(0.38f, 0.26f, 0.16f, 0.5f);
+        
+        // Título
+        GameObject tituloObj = new GameObject("Titulo");
+        tituloObj.transform.SetParent(secao.transform, false);
+        
+        RectTransform rtTitulo = tituloObj.AddComponent<RectTransform>();
+        rtTitulo.anchorMin = new Vector2(0f, 0.75f);
+        rtTitulo.anchorMax = new Vector2(1f, 1f);
+        rtTitulo.offsetMin = new Vector2(4f, 0f);
+        rtTitulo.offsetMax = new Vector2(-4f, 0f);
+        
+        Text textoTitulo = tituloObj.AddComponent<Text>();
+        textoTitulo.text = "🎮 CONTROLES";
+        textoTitulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textoTitulo.fontSize = 16;
+        textoTitulo.fontStyle = FontStyle.Bold;
+        textoTitulo.color = new Color(0.6f, 0.9f, 1f);
+        textoTitulo.alignment = TextAnchor.MiddleLeft;
+        
+        // Conteúdo
+        GameObject conteudoObj = new GameObject("Conteudo");
+        conteudoObj.transform.SetParent(secao.transform, false);
+        
+        RectTransform rtConteudo = conteudoObj.AddComponent<RectTransform>();
+        rtConteudo.anchorMin = new Vector2(0f, 0f);
+        rtConteudo.anchorMax = new Vector2(1f, 0.75f);
+        rtConteudo.offsetMin = new Vector2(4f, 2f);
+        rtConteudo.offsetMax = new Vector2(-4f, 0f);
+        
+        Text textoConteudo = conteudoObj.AddComponent<Text>();
+        textoConteudo.text = "⬆️ W ou ↑\n⬇️ S ou ↓\n⬅️ A ou ←\n➡️ D ou →";
+        textoConteudo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textoConteudo.fontSize = 13;
+        textoConteudo.color = new Color(0.9f, 0.85f, 0.75f);
+        textoConteudo.alignment = TextAnchor.UpperLeft;
+    }
+
+    private void CriarSecaoItens(Transform parent)
+    {
+        GameObject secao = new GameObject("SecaoItens");
+        secao.transform.SetParent(parent, false);
+        
+        LayoutElement le = secao.AddComponent<LayoutElement>();
+        le.preferredHeight = 70f;
+        le.flexibleWidth = 1f;
+        
+        Image fundo = secao.AddComponent<Image>();
+        fundo.color = new Color(0.38f, 0.26f, 0.16f, 0.5f);
+        
+        // Título
+        GameObject tituloObj = new GameObject("Titulo");
+        tituloObj.transform.SetParent(secao.transform, false);
+        
+        RectTransform rtTitulo = tituloObj.AddComponent<RectTransform>();
+        rtTitulo.anchorMin = new Vector2(0f, 0.82f);
+        rtTitulo.anchorMax = new Vector2(1f, 1f);
+        rtTitulo.offsetMin = new Vector2(4f, 0f);
+        rtTitulo.offsetMax = new Vector2(-4f, 0f);
+        
+        Text textoTitulo = tituloObj.AddComponent<Text>();
+        textoTitulo.text = "✨ ITENS";
+        textoTitulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textoTitulo.fontSize = 16;
+        textoTitulo.fontStyle = FontStyle.Bold;
+        textoTitulo.color = new Color(0.85f, 0.65f, 1f);
+        textoTitulo.alignment = TextAnchor.MiddleLeft;
+        
+        // Conteúdo
+        GameObject conteudoObj = new GameObject("Conteudo");
+        conteudoObj.transform.SetParent(secao.transform, false);
+        
+        RectTransform rtConteudo = conteudoObj.AddComponent<RectTransform>();
+        rtConteudo.anchorMin = new Vector2(0f, 0f);
+        rtConteudo.anchorMax = new Vector2(1f, 0.82f);
+        rtConteudo.offsetMin = new Vector2(4f, 2f);
+        rtConteudo.offsetMax = new Vector2(-4f, 0f);
+        
+        Text textoConteudo = conteudoObj.AddComponent<Text>();
+        textoConteudo.text = "🪙 Moeda = +10 pts\n⚡ Velocidade\n🛡️ Invencibilidade\n❌ Evite inimigos!";
+        textoConteudo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textoConteudo.fontSize = 13;
+        textoConteudo.color = new Color(0.9f, 0.85f, 0.75f);
+        textoConteudo.alignment = TextAnchor.UpperLeft;
+    }
+
+    private void CriarSecaoDicas(Transform parent)
+    {
+        GameObject secao = new GameObject("SecaoDicas");
+        secao.transform.SetParent(parent, false);
+        
+        LayoutElement le = secao.AddComponent<LayoutElement>();
+        le.preferredHeight = 45f;
+        le.flexibleWidth = 1f;
+        
+        Image fundo = secao.AddComponent<Image>();
+        fundo.color = new Color(0.4f, 0.28f, 0.18f, 0.6f);
+        
+        Outline borda = secao.AddComponent<Outline>();
+        borda.effectColor = new Color(0.6f, 0.45f, 0.25f, 0.4f);
+        borda.effectDistance = new Vector2(1f, 1f);
+        
+        // Título
+        GameObject tituloObj = new GameObject("Titulo");
+        tituloObj.transform.SetParent(secao.transform, false);
+        
+        RectTransform rtTitulo = tituloObj.AddComponent<RectTransform>();
+        rtTitulo.anchorMin = new Vector2(0f, 0.65f);
+        rtTitulo.anchorMax = new Vector2(1f, 1f);
+        rtTitulo.offsetMin = new Vector2(4f, 0f);
+        rtTitulo.offsetMax = new Vector2(-4f, 0f);
+        
+        Text textoTitulo = tituloObj.AddComponent<Text>();
+        textoTitulo.text = "💡 DICA";
+        textoTitulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textoTitulo.fontSize = 16;
+        textoTitulo.fontStyle = FontStyle.Bold;
+        textoTitulo.color = new Color(0.3f, 0.85f, 0.4f);
+        textoTitulo.alignment = TextAnchor.MiddleLeft;
+        
+        // Conteúdo
+        GameObject conteudoObj = new GameObject("Conteudo");
+        conteudoObj.transform.SetParent(secao.transform, false);
+        
+        RectTransform rtConteudo = conteudoObj.AddComponent<RectTransform>();
+        rtConteudo.anchorMin = new Vector2(0f, 0f);
+        rtConteudo.anchorMax = new Vector2(1f, 0.65f);
+        rtConteudo.offsetMin = new Vector2(4f, 2f);
+        rtConteudo.offsetMax = new Vector2(-4f, 0f);
+        
+        Text textoConteudo = conteudoObj.AddComponent<Text>();
+        textoConteudo.text = "Inimigos ficam mais\nlentos quando longe!";
+        textoConteudo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textoConteudo.fontSize = 13;
+        textoConteudo.color = new Color(0.9f, 0.95f, 0.85f);
+        textoConteudo.alignment = TextAnchor.UpperLeft;
+    }
+    #endregion
 
     private void CriarTituloHUD(Transform parent)
     {

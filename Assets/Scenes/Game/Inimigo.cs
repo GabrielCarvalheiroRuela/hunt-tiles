@@ -94,6 +94,14 @@ public class Inimigo : MonoBehaviour
             if (tabuleiro == null)
                 tabuleiro = FindObjectOfType<Tabuleiro>();
         }
+        
+        if (ativo && alvo != null && !estaMovendo)
+        {
+            if (posicaoX == alvo.PosicaoX && posicaoY == alvo.PosicaoY)
+            {
+                CausarDano();
+            }
+        }
     }
 
     void OnDestroy()
@@ -420,12 +428,17 @@ public class Inimigo : MonoBehaviour
 
     private IEnumerator RotinaPerseguicao()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
 
         Debug.Log($"Inimigo {gameObject.name} iniciando perseguição agressiva");
 
         while (ativo)
         {
+            if (alvo != null && posicaoX == alvo.PosicaoX && posicaoY == alvo.PosicaoY)
+            {
+                CausarDano();
+            }
+            
             float intervaloAtual = intervaloMovimento;
             if (alvo != null)
             {
@@ -434,9 +447,9 @@ public class Inimigo : MonoBehaviour
                     new Vector2(alvo.PosicaoX, alvo.PosicaoY)
                 );
 
-                if (distancia <= 3f)
+                if (distancia <= 4f)
                 {
-                    intervaloAtual *= 0.5f + (distancia / 6f);
+                    intervaloAtual *= 0.4f + (distancia / 10f);
                 }
             }
             
@@ -537,49 +550,28 @@ public class Inimigo : MonoBehaviour
         
         if (deltaX == 0 && deltaY == 0) return Vector2Int.zero;
         
-        List<Vector2Int> direcoesPrioritarias = new List<Vector2Int>();
-        
-        bool priorizarHorizontal = Mathf.Abs(deltaX) > Mathf.Abs(deltaY);
-        
-        if (priorizarHorizontal)
+        List<Vector2Int> todasDirecoes = new List<Vector2Int>
         {
-            if (deltaX > 0) direcoesPrioritarias.Add(Vector2Int.right);
-            else if (deltaX < 0) direcoesPrioritarias.Add(Vector2Int.left);
-            
-            if (deltaY > 0) direcoesPrioritarias.Add(Vector2Int.up);
-            else if (deltaY < 0) direcoesPrioritarias.Add(Vector2Int.down);
-            
-            if (deltaY >= 0) direcoesPrioritarias.Add(Vector2Int.down);
-            else direcoesPrioritarias.Add(Vector2Int.up);
-            
-            if (deltaX >= 0) direcoesPrioritarias.Add(Vector2Int.left);
-            else direcoesPrioritarias.Add(Vector2Int.right);
-        }
-        else
-        {
-            if (deltaY > 0) direcoesPrioritarias.Add(Vector2Int.up);
-            else if (deltaY < 0) direcoesPrioritarias.Add(Vector2Int.down);
-            
-            if (deltaX > 0) direcoesPrioritarias.Add(Vector2Int.right);
-            else if (deltaX < 0) direcoesPrioritarias.Add(Vector2Int.left);
-            
-            if (deltaX >= 0) direcoesPrioritarias.Add(Vector2Int.left);
-            else direcoesPrioritarias.Add(Vector2Int.right);
-            
-            if (deltaY >= 0) direcoesPrioritarias.Add(Vector2Int.down);
-            else direcoesPrioritarias.Add(Vector2Int.up);
-        }
+            Vector2Int.up,
+            Vector2Int.down,
+            Vector2Int.left,
+            Vector2Int.right
+        };
         
-        List<Vector2Int> direcoesFinal = new List<Vector2Int>();
-        foreach (var dir in direcoesPrioritarias)
+        todasDirecoes.Sort((a, b) =>
         {
-            if (!direcoesFinal.Contains(dir))
-            {
-                direcoesFinal.Add(dir);
-            }
-        }
+            float distA = Vector2.Distance(
+                new Vector2(posicaoX + a.x, posicaoY + a.y),
+                new Vector2(alvoX, alvoY)
+            );
+            float distB = Vector2.Distance(
+                new Vector2(posicaoX + b.x, posicaoY + b.y),
+                new Vector2(alvoX, alvoY)
+            );
+            return distA.CompareTo(distB);
+        });
         
-        foreach (var dir in direcoesFinal)
+        foreach (var dir in todasDirecoes)
         {
             int novoX = posicaoX + dir.x;
             int novoY = posicaoY + dir.y;
