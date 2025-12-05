@@ -71,11 +71,22 @@ public class GerenciadorJogo : MonoBehaviour
     #endregion
 
     #region Áudio
-    [Header("Áudio")]
+    [Header("Áudio - Volume")]
+    [SerializeField] [Range(0f, 1f)] private float volumeMaster = 0.15f;
+    [SerializeField] [Range(0f, 1f)] private float volumeEfeitos = 0.3f;
+    [SerializeField] [Range(0f, 1f)] private float volumeMusica = 0.1f;
+    
+    [Header("Áudio - Efeitos Sonoros")]
     [SerializeField] private AudioSource fonteAudio;
+    [SerializeField] private AudioSource fonteMusica;
     [SerializeField] private AudioClip somMoeda;
     [SerializeField] private AudioClip somPowerUp;
     [SerializeField] private AudioClip somVitoria;
+    [SerializeField] private AudioClip somDano;
+    [SerializeField] private AudioClip somMovimento;
+    [SerializeField] private AudioClip somNivelCompleto;
+    [SerializeField] private AudioClip somDerrota;
+    [SerializeField] private AudioClip somPausa;
     #endregion
 
     #region Componentes Internos
@@ -671,10 +682,20 @@ public class GerenciadorJogo : MonoBehaviour
 
     public void AlternarPausa()
     {
+        if (painelPausa == null)
+        {
+            InterfaceJogo ui = InterfaceJogo.Instancia;
+            if (ui != null && ui.PainelPausa != null)
+            {
+                painelPausa = ui.PainelPausa;
+            }
+        }
+        
         estaPausado = !estaPausado;
 
         if (estaPausado)
         {
+            TocarSomPausa();
             Time.timeScale = 0f;
             if (painelPausa != null) painelPausa.SetActive(true);
         }
@@ -689,6 +710,16 @@ public class GerenciadorJogo : MonoBehaviour
     {
         estaPausado = false;
         Time.timeScale = 1f;
+        
+        if (painelPausa == null)
+        {
+            InterfaceJogo ui = InterfaceJogo.Instancia;
+            if (ui != null && ui.PainelPausa != null)
+            {
+                painelPausa = ui.PainelPausa;
+            }
+        }
+        
         if (painelPausa != null) painelPausa.SetActive(false);
     }
 
@@ -727,12 +758,12 @@ public class GerenciadorJogo : MonoBehaviour
             case TipoColetavel.Moeda:
                 moedasColetadas++;
                 AdicionarPontos(coletavel.Valor);
-                TocarSom(somMoeda);
+                TocarSomMoeda();
                 break;
 
             case TipoColetavel.PowerUp:
                 AtivarPowerUp(coletavel.TipoPower);
-                TocarSom(somPowerUp);
+                TocarSomPowerUp();
                 break;
         }
 
@@ -752,8 +783,22 @@ public class GerenciadorJogo : MonoBehaviour
         efeitosPowerUp[indice] = true;
         temporizadoresPowerUp[indice] = 10f;
 
-        string[] nomes = { "Velocidade", "Pontuação Dupla", "Invencibilidade" };
-        Debug.Log($"⚡ Power-up: {nomes[indice]}!");
+        string mensagem = "";
+        switch (tipo)
+        {
+            case TipoPowerUp.Velocidade:
+                mensagem = "⚡ VELOCIDADE!\nMovimento 2x mais rápido por 10s";
+                break;
+            case TipoPowerUp.PontuacaoDupla:
+                mensagem = "✨ PONTUAÇÃO DUPLA!\nMoedas valem 2x por 10s";
+                break;
+            case TipoPowerUp.Invencibilidade:
+                mensagem = "🛡️ INVENCIBILIDADE!\nImune a inimigos por 10s";
+                break;
+        }
+        
+        MostrarMensagem(mensagem, 2.5f);
+        Debug.Log($"⚡ Power-up: {tipo}!");
     }
 
     private void AtualizarPowerUps()
@@ -799,6 +844,7 @@ public class GerenciadorJogo : MonoBehaviour
         int bonus = CalcularBonus();
         pontuacaoTotal += bonus;
 
+        TocarSomNivelCompleto();
         MostrarMensagem($"🎉 NÍVEL {nivelAtual} CONCLUÍDO!\n+{bonus} pontos\nPróximo: Nível {nivelAtual + 1}", tempoTransicaoNivel);
 
         StartCoroutine(TransicaoDeNivel());
@@ -843,7 +889,7 @@ public class GerenciadorJogo : MonoBehaviour
         int bonusFinal = 1000 + (nivelAtual * 200);
         pontuacaoTotal += bonusFinal;
 
-        TocarSom(somVitoria);
+        TocarSomVitoria();
 
         InterfaceJogo ui = InterfaceJogo.Instancia;
         if (ui != null)
@@ -903,11 +949,154 @@ public class GerenciadorJogo : MonoBehaviour
     #endregion
 
     #region Utilitários
-    private void TocarSom(AudioClip clip)
+    private void TocarSom(AudioClip clip, float volumeExtra = 1f)
     {
         if (fonteAudio != null && clip != null)
-            fonteAudio.PlayOneShot(clip);
+        {
+            float volumeFinal = volumeMaster * volumeEfeitos * volumeExtra;
+            fonteAudio.PlayOneShot(clip, volumeFinal);
+        }
     }
+    
+    private void TocarSomGerado(TipoSom tipo)
+    {
+        if (fonteAudio == null) return;
+        
+        AudioClip clip = GerarSom(tipo);
+        if (clip != null)
+        {
+            float volumeFinal = volumeMaster * volumeEfeitos;
+            fonteAudio.PlayOneShot(clip, volumeFinal);
+        }
+    }
+    
+    private enum TipoSom { Moeda, PowerUp, Dano, Vitoria, Derrota, Movimento, NivelCompleto, Pausa }
+    
+    private AudioClip GerarSom(TipoSom tipo)
+    {
+        int sampleRate = 44100;
+        int samples;
+        float[] data;
+        
+        switch (tipo)
+        {
+            case TipoSom.Moeda:
+                samples = sampleRate / 6; // ~0.16s
+                data = new float[samples];
+                for (int i = 0; i < samples; i++)
+                {
+                    float t = (float)i / sampleRate;
+                    float envelope = 1f - (float)i / samples;
+                    float freq1 = 880f + (i < samples/2 ? 0 : 220f); // A5 -> B5
+                    data[i] = Mathf.Sin(2f * Mathf.PI * freq1 * t) * envelope * 0.4f;
+                }
+                break;
+                
+            case TipoSom.PowerUp:
+                samples = sampleRate / 3; // ~0.33s
+                data = new float[samples];
+                for (int i = 0; i < samples; i++)
+                {
+                    float t = (float)i / sampleRate;
+                    float progress = (float)i / samples;
+                    float envelope = (1f - progress) * Mathf.Sin(progress * Mathf.PI);
+                    float freq = 440f + progress * 880f; // Sweep de A4 a A6
+                    data[i] = (Mathf.Sin(2f * Mathf.PI * freq * t) + 
+                              Mathf.Sin(2f * Mathf.PI * freq * 1.5f * t) * 0.3f) * envelope * 0.35f;
+                }
+                break;
+                
+            case TipoSom.Dano:
+                samples = sampleRate / 4; // ~0.25s
+                data = new float[samples];
+                for (int i = 0; i < samples; i++)
+                {
+                    float t = (float)i / sampleRate;
+                    float envelope = 1f - (float)i / samples;
+                    float freq = 150f - ((float)i / samples) * 50f;
+                    float noise = (Random.value - 0.5f) * 0.3f;
+                    data[i] = (Mathf.Sin(2f * Mathf.PI * freq * t) * 0.7f + noise) * envelope * 0.5f;
+                }
+                break;
+                
+            case TipoSom.Vitoria:
+                samples = sampleRate; // 1s
+                data = new float[samples];
+                float[] notasVitoria = { 523f, 659f, 784f, 1047f }; // C5, E5, G5, C6
+                for (int i = 0; i < samples; i++)
+                {
+                    float t = (float)i / sampleRate;
+                    int notaIdx = Mathf.Min((int)(t * 4f), 3);
+                    float envelope = Mathf.Max(0, 1f - (t * 4f - notaIdx) * 0.5f);
+                    float freq = notasVitoria[notaIdx];
+                    data[i] = Mathf.Sin(2f * Mathf.PI * freq * t) * envelope * 0.4f;
+                }
+                break;
+                
+            case TipoSom.Derrota:
+                samples = sampleRate; // 1s
+                data = new float[samples];
+                for (int i = 0; i < samples; i++)
+                {
+                    float t = (float)i / sampleRate;
+                    float envelope = Mathf.Max(0, 1f - t);
+                    float freq = 440f - t * 200f; // Descendo
+                    data[i] = Mathf.Sin(2f * Mathf.PI * freq * t) * envelope * 0.4f;
+                }
+                break;
+                
+            case TipoSom.Movimento:
+                samples = sampleRate / 20; // ~0.05s
+                data = new float[samples];
+                for (int i = 0; i < samples; i++)
+                {
+                    float envelope = 1f - (float)i / samples;
+                    data[i] = (Random.value - 0.5f) * envelope * 0.15f;
+                }
+                break;
+                
+            case TipoSom.NivelCompleto:
+                samples = sampleRate / 2; // 0.5s
+                data = new float[samples];
+                float[] notasNivel = { 392f, 494f, 587f, 784f }; // G4, B4, D5, G5
+                for (int i = 0; i < samples; i++)
+                {
+                    float t = (float)i / sampleRate;
+                    int notaIdx = Mathf.Min((int)(t * 8f), 3);
+                    float envelope = Mathf.Max(0, 1f - (t * 8f - notaIdx) * 0.7f);
+                    float freq = notasNivel[notaIdx];
+                    data[i] = Mathf.Sin(2f * Mathf.PI * freq * t) * envelope * 0.35f;
+                }
+                break;
+                
+            case TipoSom.Pausa:
+                samples = sampleRate / 10; // 0.1s
+                data = new float[samples];
+                for (int i = 0; i < samples; i++)
+                {
+                    float t = (float)i / sampleRate;
+                    float envelope = Mathf.Sin((float)i / samples * Mathf.PI);
+                    data[i] = Mathf.Sin(2f * Mathf.PI * 600f * t) * envelope * 0.25f;
+                }
+                break;
+                
+            default:
+                return null;
+        }
+        
+        AudioClip clip = AudioClip.Create($"Som_{tipo}", data.Length, 1, sampleRate, false);
+        clip.SetData(data, 0);
+        return clip;
+    }
+    
+    public void TocarSomMoeda() => TocarSomGerado(TipoSom.Moeda);
+    public void TocarSomPowerUp() => TocarSomGerado(TipoSom.PowerUp);
+    public void TocarSomDano() => TocarSomGerado(TipoSom.Dano);
+    public void TocarSomVitoria() => TocarSomGerado(TipoSom.Vitoria);
+    public void TocarSomDerrota() => TocarSomGerado(TipoSom.Derrota);
+    public void TocarSomMovimento() => TocarSomGerado(TipoSom.Movimento);
+    public void TocarSomNivelCompleto() => TocarSomGerado(TipoSom.NivelCompleto);
+    public void TocarSomPausa() => TocarSomGerado(TipoSom.Pausa);
 
     private void MostrarMensagem(string mensagem, float duracao)
     {
@@ -934,6 +1123,7 @@ public class GerenciadorJogo : MonoBehaviour
         vidasAtuais -= dano;
         vidasAtuais = Mathf.Max(0, vidasAtuais);
 
+        TocarSomDano();
         Debug.Log($"💥 Dano recebido! Vidas: {vidasAtuais}/{vidasMaximas}");
 
         // Feedback visual
@@ -1033,6 +1223,7 @@ public class GerenciadorJogo : MonoBehaviour
         jogoPerdido = true;
         jogoVencido = false;
 
+        TocarSomDerrota();
         Debug.Log("💩 GAME OVER!");
 
         // Parar inimigos

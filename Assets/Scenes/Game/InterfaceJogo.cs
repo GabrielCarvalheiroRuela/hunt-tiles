@@ -15,6 +15,7 @@ public class InterfaceJogo : MonoBehaviour
     [SerializeField] private GameObject painelTutorial;
     [SerializeField] private GameObject painelVitoria;
     [SerializeField] private GameObject painelDerrota;
+    [SerializeField] private GameObject painelPausa;
     [SerializeField] private GameObject painelMensagem;
 
     [Header("Textos do HUD")]
@@ -71,6 +72,7 @@ public class InterfaceJogo : MonoBehaviour
     #region Singleton
     public static InterfaceJogo Instancia { get; private set; }
     public static InterfaceJogo Instance => Instancia;
+    public GameObject PainelPausa => painelPausa;
     #endregion
 
     #region Unity Lifecycle
@@ -153,6 +155,7 @@ public class InterfaceJogo : MonoBehaviour
         CriarPainelTutorial(canvas.transform);
         CriarAreaMensagens(canvas.transform);
         CriarPainelVitoria(canvas.transform);
+        CriarPainelPausa(canvas.transform);
         
         AjustarLayoutResponsivo();
     }
@@ -1002,11 +1005,11 @@ public class InterfaceJogo : MonoBehaviour
         msg.transform.SetParent(parent, false);
 
         RectTransform rt = msg.AddComponent<RectTransform>();
-        // Posicionar no TOPO da tela, nunca em cima do tabuleiro
-        rt.anchorMin = new Vector2(0.1f, 0.92f);
-        rt.anchorMax = new Vector2(0.7f, 0.99f);
-        rt.offsetMin = Vector2.zero;
-        rt.offsetMax = Vector2.zero;
+        rt.anchorMin = new Vector2(0.5f, 0.92f);
+        rt.anchorMax = new Vector2(0.5f, 0.99f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(500f, 50f);
+        rt.anchoredPosition = new Vector2(0f, 0f);
 
         Image fundo = msg.AddComponent<Image>();
         fundo.color = new Color(0f, 0f, 0f, 0.85f);
@@ -1134,6 +1137,108 @@ public class InterfaceJogo : MonoBehaviour
             () => UnityEngine.SceneManagement.SceneManager.LoadScene("Menu"));
 
         painel.SetActive(false);
+    }
+
+    private void CriarPainelPausa(Transform parent)
+    {
+        GameObject painel = new GameObject("Painel Pausa");
+        painel.transform.SetParent(parent, false);
+
+        RectTransform rt = painel.AddComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+
+        Image fundo = painel.AddComponent<Image>();
+        fundo.color = new Color(0f, 0f, 0f, 0.75f);
+
+        painelPausa = painel;
+
+        GameObject caixa = new GameObject("Caixa");
+        caixa.transform.SetParent(painel.transform, false);
+
+        RectTransform rtCaixa = caixa.AddComponent<RectTransform>();
+        rtCaixa.anchorMin = new Vector2(0.2f, 0.2f);
+        rtCaixa.anchorMax = new Vector2(0.8f, 0.8f);
+        rtCaixa.offsetMin = Vector2.zero;
+        rtCaixa.offsetMax = Vector2.zero;
+
+        Image fundoCaixa = caixa.AddComponent<Image>();
+        fundoCaixa.color = new Color(0.25f, 0.18f, 0.1f, 0.98f);
+
+        Outline bordaCaixa = caixa.AddComponent<Outline>();
+        bordaCaixa.effectColor = new Color(0.75f, 0.6f, 0.3f, 1f);
+        bordaCaixa.effectDistance = new Vector2(4f, 4f);
+
+        Shadow sombraCaixa = caixa.AddComponent<Shadow>();
+        sombraCaixa.effectColor = new Color(0f, 0f, 0f, 0.7f);
+        sombraCaixa.effectDistance = new Vector2(8f, -8f);
+
+        GameObject tituloObj = new GameObject("Titulo");
+        tituloObj.transform.SetParent(caixa.transform, false);
+
+        RectTransform rtTitulo = tituloObj.AddComponent<RectTransform>();
+        rtTitulo.anchorMin = new Vector2(0.05f, 0.75f);
+        rtTitulo.anchorMax = new Vector2(0.95f, 0.95f);
+        rtTitulo.offsetMin = Vector2.zero;
+        rtTitulo.offsetMax = Vector2.zero;
+
+        Text titulo = tituloObj.AddComponent<Text>();
+        titulo.text = "⏸️ PAUSADO";
+        titulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        titulo.fontSize = 36;
+        titulo.fontStyle = FontStyle.Bold;
+        titulo.color = new Color(1f, 0.9f, 0.65f, 1f);
+        titulo.alignment = TextAnchor.MiddleCenter;
+
+        Outline brilhoTitulo = tituloObj.AddComponent<Outline>();
+        brilhoTitulo.effectColor = new Color(0.5f, 0.35f, 0.15f, 0.9f);
+        brilhoTitulo.effectDistance = new Vector2(2f, 2f);
+
+        GameObject subObj = new GameObject("Subtitulo");
+        subObj.transform.SetParent(caixa.transform, false);
+
+        RectTransform rtSub = subObj.AddComponent<RectTransform>();
+        rtSub.anchorMin = new Vector2(0.1f, 0.6f);
+        rtSub.anchorMax = new Vector2(0.9f, 0.75f);
+        rtSub.offsetMin = Vector2.zero;
+        rtSub.offsetMax = Vector2.zero;
+
+        Text subtitulo = subObj.AddComponent<Text>();
+        subtitulo.text = "Pressione ESC para continuar";
+        subtitulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        subtitulo.fontSize = 16;
+        subtitulo.fontStyle = FontStyle.Italic;
+        subtitulo.color = new Color(0.85f, 0.8f, 0.7f, 0.9f);
+        subtitulo.alignment = TextAnchor.MiddleCenter;
+
+        CriarBotaoEstilizado(caixa.transform, "Continuar", "▶️ CONTINUAR",
+            new Vector2(0.15f, 0.4f), new Vector2(0.85f, 0.55f),
+            new Color(0.2f, 0.5f, 0.3f, 1f),
+            () => gerenciador?.ContinuarJogo());
+
+        CriarBotaoEstilizado(caixa.transform, "Reiniciar", "🔄 REINICIAR",
+            new Vector2(0.15f, 0.22f), new Vector2(0.85f, 0.37f),
+            new Color(0.5f, 0.4f, 0.2f, 1f),
+            () => gerenciador?.ReiniciarJogo());
+
+        CriarBotaoEstilizado(caixa.transform, "Menu", "🏠 MENU PRINCIPAL",
+            new Vector2(0.15f, 0.04f), new Vector2(0.85f, 0.19f),
+            new Color(0.5f, 0.25f, 0.2f, 1f),
+            () => UnityEngine.SceneManagement.SceneManager.LoadScene("Menu"));
+
+        painel.SetActive(false);
+        
+        if (gerenciador != null)
+        {
+            var campo = typeof(GerenciadorJogo).GetField("painelPausa", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (campo != null)
+            {
+                campo.SetValue(gerenciador, painelPausa);
+            }
+        }
     }
 
     private void CriarBotaoEstilizado(Transform parent, string nome, string texto, Vector2 anchorMin, Vector2 anchorMax, Color corBase, System.Action aoClicar)

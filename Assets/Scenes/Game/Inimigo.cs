@@ -37,6 +37,8 @@ public class Inimigo : MonoBehaviour
     private bool estaMovendo = false;
     private bool ativo = true;
     private Coroutine rotinaPerseguicao;
+    private float cooldownDano = 0f;
+    private const float TEMPO_COOLDOWN_DANO = 1.5f;
     #endregion
 
     #region Propriedades
@@ -95,7 +97,12 @@ public class Inimigo : MonoBehaviour
                 tabuleiro = FindObjectOfType<Tabuleiro>();
         }
         
-        if (ativo && alvo != null && !estaMovendo)
+        if (cooldownDano > 0f)
+        {
+            cooldownDano -= Time.deltaTime;
+        }
+        
+        if (ativo && alvo != null)
         {
             if (posicaoX == alvo.PosicaoX && posicaoY == alvo.PosicaoY)
             {
@@ -727,11 +734,19 @@ public class Inimigo : MonoBehaviour
 
     private bool PodeMoverPara(int x, int y)
     {
+        if (tabuleiro == null) return false;
+        
         if (x < 0 || x >= tabuleiro.Largura || y < 0 || y >= tabuleiro.Altura)
             return false;
 
         Celula celula = tabuleiro.ObterCelula(x, y);
-        if (celula == null || !celula.Transitavel)
+        if (celula == null)
+            return false;
+
+        if (alvo != null && x == alvo.PosicaoX && y == alvo.PosicaoY)
+            return true;
+
+        if (!celula.Transitavel)
             return false;
 
         Inimigo[] inimigos = FindObjectsOfType<Inimigo>();
@@ -825,6 +840,8 @@ public class Inimigo : MonoBehaviour
 
     private void CausarDano()
     {
+        if (cooldownDano > 0f) return;
+        
         GerenciadorJogo gerenciador = GerenciadorJogo.Instancia;
         if (gerenciador != null)
         {
@@ -835,6 +852,7 @@ public class Inimigo : MonoBehaviour
             }
 
             gerenciador.JogadorReceberDano(dano);
+            cooldownDano = TEMPO_COOLDOWN_DANO;
             StartCoroutine(AnimacaoAtaque());
         }
     }
