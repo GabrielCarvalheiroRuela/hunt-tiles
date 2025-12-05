@@ -18,13 +18,14 @@ public class AutoGameSetup
         Scene currentScene = SceneManager.GetActiveScene();
         if (currentScene.name != "Game") return;
         
-        GameSceneBootstrap bootstrap = Object.FindObjectOfType<GameSceneBootstrap>();
-        if (bootstrap == null)
+        // Verifica se CarregarJogo existe na cena
+        CarregarJogo carregarJogo = Object.FindObjectOfType<CarregarJogo>();
+        if (carregarJogo == null)
         {
-            GameObject bootstrapGO = new GameObject("Game Scene Bootstrap");
-            bootstrapGO.AddComponent<GameSceneBootstrap>();
+            GameObject jogoGO = new GameObject("Jogo");
+            jogoGO.AddComponent<CarregarJogo>();
             
-            Debug.Log("Bootstrap adicionado automaticamente à cena Game!");
+            Debug.Log("CarregarJogo adicionado automaticamente à cena Game!");
         }
     }
 }

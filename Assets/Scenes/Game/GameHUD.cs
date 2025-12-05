@@ -14,8 +14,6 @@ public class GameHUD : MonoBehaviour
     [SerializeField] private Text messageText;
     [SerializeField] private GameObject winPanel;
     [SerializeField] private Text winScoreText;
-    [SerializeField] private Button restartButton;
-    [SerializeField] private Button menuButton;
     
     [Header("Visual Settings")]
     [SerializeField] private Color hudBackgroundColor = new Color(0f, 0f, 0f, 0.6f);
