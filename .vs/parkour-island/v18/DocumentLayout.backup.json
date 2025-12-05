@@ -1,7 +1,24 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\gabriel\\git\\parkour-island\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{178B177F-3B30-9A3E-4A42-F5A1D4B0ED0C}|Assembly-CSharp.csproj|c:\\users\\gabriel\\git\\parkour-island\\assets\\scenes\\game\\carregarjogo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{178B177F-3B30-9A3E-4A42-F5A1D4B0ED0C}|Assembly-CSharp.csproj|solutionrelative:assets\\scenes\\game\\carregarjogo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{178B177F-3B30-9A3E-4A42-F5A1D4B0ED0C}|Assembly-CSharp.csproj|c:\\users\\gabriel\\git\\parkour-island\\assets\\scenes\\game\\collectible.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{178B177F-3B30-9A3E-4A42-F5A1D4B0ED0C}|Assembly-CSharp.csproj|solutionrelative:assets\\scenes\\game\\collectible.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{178B177F-3B30-9A3E-4A42-F5A1D4B0ED0C}|Assembly-CSharp.csproj|c:\\users\\gabriel\\git\\parkour-island\\assets\\scenes\\game\\visualeffectsmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{178B177F-3B30-9A3E-4A42-F5A1D4B0ED0C}|Assembly-CSharp.csproj|solutionrelative:assets\\scenes\\game\\visualeffectsmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{178B177F-3B30-9A3E-4A42-F5A1D4B0ED0C}|Assembly-CSharp.csproj|c:\\users\\gabriel\\git\\parkour-island\\assets\\scenes\\game\\charactercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{178B177F-3B30-9A3E-4A42-F5A1D4B0ED0C}|Assembly-CSharp.csproj|solutionrelative:assets\\scenes\\game\\charactercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,7 +26,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 113,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 17,
           "Children": [
             {
               "$type": "Bookmark",
@@ -78,6 +95,58 @@
             {
               "$type": "Bookmark",
               "Name": "ST:129:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "CarregarJogo.cs",
+              "DocumentMoniker": "C:\\Users\\gabriel\\git\\parkour-island\\Assets\\Scenes\\Game\\CarregarJogo.cs",
+              "RelativeDocumentMoniker": "Assets\\Scenes\\Game\\CarregarJogo.cs",
+              "ToolTip": "C:\\Users\\gabriel\\git\\parkour-island\\Assets\\Scenes\\Game\\CarregarJogo.cs",
+              "RelativeToolTip": "Assets\\Scenes\\Game\\CarregarJogo.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACoAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-05T13:13:29.915Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Collectible.cs",
+              "DocumentMoniker": "C:\\Users\\gabriel\\git\\parkour-island\\Assets\\Scenes\\Game\\Collectible.cs",
+              "RelativeDocumentMoniker": "Assets\\Scenes\\Game\\Collectible.cs",
+              "ToolTip": "C:\\Users\\gabriel\\git\\parkour-island\\Assets\\Scenes\\Game\\Collectible.cs",
+              "RelativeToolTip": "Assets\\Scenes\\Game\\Collectible.cs",
+              "ViewState": "AgIAAMwAAAAAAAAAAAAAAJUAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-05T13:13:19.586Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "VisualEffectsManager.cs",
+              "DocumentMoniker": "C:\\Users\\gabriel\\git\\parkour-island\\Assets\\Scenes\\Game\\VisualEffectsManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Scenes\\Game\\VisualEffectsManager.cs",
+              "ToolTip": "C:\\Users\\gabriel\\git\\parkour-island\\Assets\\Scenes\\Game\\VisualEffectsManager.cs",
+              "RelativeToolTip": "Assets\\Scenes\\Game\\VisualEffectsManager.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-05T13:13:14.849Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "CharacterController.cs",
+              "DocumentMoniker": "C:\\Users\\gabriel\\git\\parkour-island\\Assets\\Scenes\\Game\\CharacterController.cs",
+              "RelativeDocumentMoniker": "Assets\\Scenes\\Game\\CharacterController.cs",
+              "ToolTip": "C:\\Users\\gabriel\\git\\parkour-island\\Assets\\Scenes\\Game\\CharacterController.cs",
+              "RelativeToolTip": "Assets\\Scenes\\Game\\CharacterController.cs",
+              "ViewState": "AgIAABwAAAAAAAAAAAAAADgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-05T13:09:58.201Z",
+              "EditorCaption": ""
             }
           ]
         },
