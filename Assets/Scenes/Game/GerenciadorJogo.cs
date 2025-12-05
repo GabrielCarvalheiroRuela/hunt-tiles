@@ -48,6 +48,20 @@ public class GerenciadorJogo : MonoBehaviour
     [SerializeField] private int paredesBase = 3;
     #endregion
 
+    #region Sistema de Vidas
+    [Header("Sistema de Vidas")]
+    [SerializeField] private int vidasMaximas = 3;
+    [SerializeField] private int vidasAtuais = 3;
+    [SerializeField] private float tempoInvencibilidadeDano = 2f;
+    [SerializeField] private bool invencivelPorDano = false;
+    #endregion
+
+    #region Configurações de Inimigos
+    [Header("Inimigos")]
+    [SerializeField] private int inimigosBase = 1;
+    [SerializeField] private float velocidadeInimigoBase = 1.5f;
+    #endregion
+
     #region Referências de UI
     [Header("Interface")]
     [SerializeField] private GameObject painelJogo;
@@ -69,11 +83,13 @@ public class GerenciadorJogo : MonoBehaviour
     private Personagem personagem;
     private List<Coletavel> todosColetaveis = new List<Coletavel>();
     private List<Obstacle> todosObstaculos = new List<Obstacle>();
+    private List<Inimigo> todosInimigos = new List<Inimigo>();
     #endregion
 
     #region Estado do Jogo
     private bool estaPausado = false;
     private bool jogoVencido = false;
+    private bool jogoPerdido = false;
     private bool jogoInicializado = false;
     private bool[] efeitosPowerUp = new bool[3];
     private float[] temporizadoresPowerUp = new float[3];
@@ -84,9 +100,12 @@ public class GerenciadorJogo : MonoBehaviour
     public int MoedasColetadas => moedasColetadas;
     public float TempoDeJogo => tempoDeJogo;
     public bool JogoVencido => jogoVencido;
+    public bool JogoPerdido => jogoPerdido;
     public int NivelAtual => nivelAtual;
     public bool EstaPausado => estaPausado;
     public bool EstaInicializado => jogoInicializado;
+    public int VidasAtuais => vidasAtuais;
+    public int VidasMaximas => vidasMaximas;
     #endregion
 
     #region Unity Lifecycle
@@ -106,11 +125,19 @@ public class GerenciadorJogo : MonoBehaviour
 
         VerificarInputs();
 
-        if (!jogoVencido)
+        if (!jogoVencido && !jogoPerdido)
         {
             tempoDeJogo += Time.deltaTime;
             AtualizarPowerUps();
+            AtualizarInvencibilidadeDano();
         }
+    }
+    #endregion
+
+    #region Invencibilidade por Dano
+    private void AtualizarInvencibilidadeDano()
+    {
+        // Gerenciado por coroutine
     }
     #endregion
 
@@ -247,6 +274,7 @@ public class GerenciadorJogo : MonoBehaviour
         // Criar obstáculos e coletáveis
         CriarObstaculos();
         CriarColetaveis();
+        CriarInimigos();
 
         jogoInicializado = true;
 
@@ -407,6 +435,90 @@ public class GerenciadorJogo : MonoBehaviour
         }
 
         todosColetaveis.Add(coletavel);
+    }
+    #endregion
+
+    #region Criação de Inimigos
+    private void CriarInimigos()
+    {
+        if (tabuleiro == null) return;
+
+        int quantidade = inimigosBase + (nivelAtual - 1); // Mais inimigos por nível
+        quantidade = Mathf.Min(quantidade, 5); // Máximo 5 inimigos
+
+        float velocidade = velocidadeInimigoBase - (nivelAtual - 1) * 0.1f; // Mais rápidos por nível
+        velocidade = Mathf.Max(velocidade, 0.6f); // Velocidade mínima
+
+        List<Vector2Int> posicoesValidas = ObterPosicoesParaInimigos();
+
+        for (int i = 0; i < quantidade && posicoesValidas.Count > 0; i++)
+        {
+            int idx = Random.Range(0, posicoesValidas.Count);
+            Vector2Int pos = posicoesValidas[idx];
+            posicoesValidas.RemoveAt(idx);
+
+            CriarInimigo(pos.x, pos.y, velocidade);
+        }
+
+        Debug.Log($"✓ {quantidade} inimigos criados (velocidade: {velocidade:F1}s)");
+    }
+
+    private List<Vector2Int> ObterPosicoesParaInimigos()
+    {
+        List<Vector2Int> posicoes = new List<Vector2Int>();
+        int metadeX = tabuleiro.Width / 2;
+        int metadeY = tabuleiro.Height / 2;
+
+        // Inimigos começam longe do jogador
+        for (int x = metadeX; x < tabuleiro.Width; x++)
+        {
+            for (int y = metadeY; y < tabuleiro.Height; y++)
+            {
+                if (!PosicaoOcupada(x, y) && !TemObstaculoEm(x, y, ObstacleType.Wall))
+                {
+                    posicoes.Add(new Vector2Int(x, y));
+                }
+            }
+        }
+
+        // Se não houver posições no canto, tentar outras áreas
+        if (posicoes.Count < 3)
+        {
+            for (int x = 0; x < tabuleiro.Width; x++)
+            {
+                for (int y = 0; y < tabuleiro.Height; y++)
+                {
+                    // Distância mínima do jogador
+                    if (x + y > 4 && !PosicaoOcupada(x, y) && !TemObstaculoEm(x, y, ObstacleType.Wall))
+                    {
+                        Vector2Int pos = new Vector2Int(x, y);
+                        if (!posicoes.Contains(pos))
+                            posicoes.Add(pos);
+                    }
+                }
+            }
+        }
+
+        return posicoes;
+    }
+
+    private void CriarInimigo(int x, int y, float velocidade)
+    {
+        GameObject go = new GameObject($"Inimigo_{x}_{y}");
+        go.transform.SetParent(tabuleiro.transform, false);
+
+        Inimigo inimigo = go.AddComponent<Inimigo>();
+        inimigo.Inicializar(x, y, velocidade);
+
+        Celula celula = tabuleiro.ObterCelula(x, y);
+        if (celula != null)
+        {
+            RectTransform rt = inimigo.GetComponent<RectTransform>();
+            RectTransform celulaRt = celula.GetComponent<RectTransform>();
+            rt.anchoredPosition = celulaRt.anchoredPosition;
+        }
+
+        todosInimigos.Add(inimigo);
     }
     #endregion
 
@@ -667,7 +779,7 @@ public class GerenciadorJogo : MonoBehaviour
         {
             if (c.Tipo == TipoColetavel.Moeda)
             {
-                moedasRestantes++;;
+                moedasRestantes++;
             }
         }
 
@@ -704,6 +816,7 @@ public class GerenciadorJogo : MonoBehaviour
 
         CriarObstaculos();
         CriarColetaveis();
+        CriarInimigos();
 
         MostrarMensagem($"🚀 NÍVEL {nivelAtual}!\nColete todos os itens!", 2f);
     }
@@ -717,6 +830,10 @@ public class GerenciadorJogo : MonoBehaviour
         foreach (var o in todosObstaculos)
             if (o != null) Destroy(o.gameObject);
         todosObstaculos.Clear();
+
+        foreach (var i in todosInimigos)
+            if (i != null) Destroy(i.gameObject);
+        todosInimigos.Clear();
     }
 
     private void CompletarJogo()
@@ -801,9 +918,147 @@ public class GerenciadorJogo : MonoBehaviour
 
     public bool TemVelocidadeExtra() => efeitosPowerUp[0];
     public bool TemPontuacaoDupla() => efeitosPowerUp[1];
-    public bool TemInvencibilidade() => efeitosPowerUp[2];
+    public bool TemInvencibilidade() => efeitosPowerUp[2] || invencivelPorDano;
 
     public Personagem ObterPersonagem() => personagem;
     public Tabuleiro ObterTabuleiro() => tabuleiro;
+    #endregion
+
+    #region Sistema de Dano e Vidas
+    public void JogadorReceberDano(int dano)
+    {
+        // Verificar se está invencível
+        if (TemInvencibilidade()) return;
+        if (jogoPerdido || jogoVencido) return;
+
+        vidasAtuais -= dano;
+        vidasAtuais = Mathf.Max(0, vidasAtuais);
+
+        Debug.Log($"💥 Dano recebido! Vidas: {vidasAtuais}/{vidasMaximas}");
+
+        // Feedback visual
+        if (personagem != null)
+        {
+            StartCoroutine(AnimacaoDano());
+        }
+
+        // Ativar invencibilidade temporária
+        StartCoroutine(InvencibilidadeTemporaria());
+
+        // Verificar derrota
+        if (vidasAtuais <= 0)
+        {
+            PerderJogo();
+        }
+        else
+        {
+            MostrarMensagem($"💥 -{dano} vida! ({vidasAtuais}/{vidasMaximas})", 1.5f);
+        }
+
+        // Atualizar HUD
+        AtualizarHUDVidas();
+    }
+
+    private IEnumerator InvencibilidadeTemporaria()
+    {
+        invencivelPorDano = true;
+        
+        // Piscar personagem
+        if (personagem != null)
+        {
+            Image img = personagem.GetComponent<Image>();
+            if (img != null)
+            {
+                float tempo = 0f;
+                while (tempo < tempoInvencibilidadeDano)
+                {
+                    img.color = new Color(img.color.r, img.color.g, img.color.b, 
+                        Mathf.PingPong(tempo * 8f, 1f) > 0.5f ? 0.3f : 1f);
+                    tempo += Time.deltaTime;
+                    yield return null;
+                }
+                img.color = new Color(img.color.r, img.color.g, img.color.b, 1f);
+            }
+        }
+
+        invencivelPorDano = false;
+    }
+
+    private IEnumerator AnimacaoDano()
+    {
+        Image img = personagem.GetComponent<Image>();
+        if (img == null) yield break;
+
+        Color corOriginal = img.color;
+        img.color = Color.red;
+
+        RectTransform rt = personagem.GetComponent<RectTransform>();
+        Vector2 posOriginal = rt.anchoredPosition;
+
+        // Shake
+        float tempo = 0f;
+        float duracao = 0.3f;
+        while (tempo < duracao)
+        {
+            float offset = Mathf.Sin(tempo * 50f) * 5f * (1f - tempo / duracao);
+            rt.anchoredPosition = posOriginal + new Vector2(offset, 0);
+            tempo += Time.deltaTime;
+            yield return null;
+        }
+
+        rt.anchoredPosition = posOriginal;
+        img.color = corOriginal;
+    }
+
+    private void AtualizarHUDVidas()
+    {
+        InterfaceJogo ui = InterfaceJogo.Instancia;
+        if (ui != null)
+        {
+            ui.AtualizarVidas(vidasAtuais, vidasMaximas);
+        }
+    }
+
+    public void RecuperarVida(int quantidade = 1)
+    {
+        vidasAtuais = Mathf.Min(vidasAtuais + quantidade, vidasMaximas);
+        AtualizarHUDVidas();
+        MostrarMensagem($"❤️ +{quantidade} vida!", 1f);
+    }
+    #endregion
+
+    #region Condição de Derrota
+    private void PerderJogo()
+    {
+        jogoPerdido = true;
+        jogoVencido = false;
+
+        Debug.Log("💩 GAME OVER!");
+
+        // Parar inimigos
+        foreach (var inimigo in todosInimigos)
+        {
+            if (inimigo != null)
+                inimigo.PararPerseguicao();
+        }
+
+        // Mostrar tela de derrota
+        InterfaceJogo ui = InterfaceJogo.Instancia;
+        if (ui != null)
+        {
+            ui.MostrarPainelDerrota(pontuacaoTotal, tempoDeJogo, nivelAtual, moedasColetadas);
+        }
+    }
+
+    public void VerificarColisaoInimigos(int jogadorX, int jogadorY)
+    {
+        foreach (var inimigo in todosInimigos)
+        {
+            if (inimigo != null && inimigo.Ativo)
+            {
+                inimigo.VerificarColisao(jogadorX, jogadorY);
+            }
+        }
+    }
     #endregion
 }

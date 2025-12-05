@@ -23,8 +23,10 @@ public class Personagem : MonoBehaviour
 
     #region Configurações Visuais
     [Header("Visual")]
-    [SerializeField] private Color corPersonagem = new Color(0.2f, 0.6f, 0.9f, 1f);
-    [SerializeField] private float tamanho = 30f;
+    [SerializeField] private Color corPersonagem = new Color(0.2f, 0.7f, 1f, 1f);  // Azul vibrante
+    [SerializeField] private Color corContorno = new Color(0.1f, 0.3f, 0.6f, 1f);  // Azul escuro
+    [SerializeField] private float tamanho = 32f;
+    [SerializeField] private bool animarIdle = true;
     #endregion
 
     #region Configurações de Input
@@ -41,6 +43,7 @@ public class Personagem : MonoBehaviour
 
     #region Estado
     private bool estaMovendo = false;
+    private Coroutine animacaoIdle;
     #endregion
 
     #region Propriedades Públicas
@@ -122,30 +125,59 @@ public class Personagem : MonoBehaviour
         }
 
         imagemPersonagem.color = corPersonagem;
-        imagemPersonagem.sprite = CriarSpriteCircular();
+        imagemPersonagem.sprite = CriarSpritePersonagem();
 
-        // Contorno
+        // Contorno elegante
         Outline contorno = GetComponent<Outline>();
         if (contorno == null)
         {
             contorno = gameObject.AddComponent<Outline>();
         }
-        contorno.effectColor = Color.white;
+        contorno.effectColor = corContorno;
         contorno.effectDistance = new Vector2(2f, 2f);
 
-        // Sombra
+        // Sombra profunda
         Shadow sombra = GetComponent<Shadow>();
         if (sombra == null)
         {
             sombra = gameObject.AddComponent<Shadow>();
         }
-        sombra.effectColor = new Color(0f, 0f, 0f, 0.5f);
+        sombra.effectColor = new Color(0f, 0f, 0f, 0.6f);
         sombra.effectDistance = new Vector2(3f, -3f);
+
+        // Iniciar animação idle
+        if (animarIdle)
+        {
+            animacaoIdle = StartCoroutine(AnimarIdle());
+        }
+    }
+    #endregion
+
+    #region Animação Idle
+    private IEnumerator AnimarIdle()
+    {
+        Vector3 escalaBase = Vector3.one;
+        float tempo = 0f;
+
+        while (true)
+        {
+            if (!estaMovendo)
+            {
+                tempo += Time.deltaTime * 2f;
+                float escala = 1f + Mathf.Sin(tempo) * 0.05f;
+                retanguloTransform.localScale = escalaBase * escala;
+            }
+            else
+            {
+                retanguloTransform.localScale = escalaBase;
+            }
+            yield return null;
+        }
     }
     #endregion
 
     #region Criação de Sprite
-    private Sprite CriarSpriteCircular()
+    private Sprite CriarSpritePersonagem()
     {
         int tamanhoTextura = 64;
         Texture2D textura = new Texture2D(tamanhoTextura, tamanhoTextura, TextureFormat.RGBA32, false);
@@ -398,6 +430,18 @@ public class Personagem : MonoBehaviour
                 Debug.Log($"Coletando {coletavel.Tipo} na posição ({x}, {y})!");
                 coletavel.Coletar();
             }
+        }
+
+        // Verificar colisão com inimigos
+        VerificarColisaoInimigos(x, y);
+    }
+
+    private void VerificarColisaoInimigos(int x, int y)
+    {
+        GerenciadorJogo gerenciador = GerenciadorJogo.Instancia;
+        if (gerenciador != null)
+        {
+            gerenciador.VerificarColisaoInimigos(x, y);
         }
     }
     #endregion

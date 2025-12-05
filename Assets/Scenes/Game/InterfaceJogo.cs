@@ -13,6 +13,7 @@ public class InterfaceJogo : MonoBehaviour
     [Header("Painéis")]
     [SerializeField] private GameObject painelHUD;
     [SerializeField] private GameObject painelVitoria;
+    [SerializeField] private GameObject painelDerrota;
     [SerializeField] private GameObject painelMensagem;
 
     [Header("Textos do HUD")]
@@ -21,6 +22,7 @@ public class InterfaceJogo : MonoBehaviour
     [SerializeField] private Text textoTempo;
     [SerializeField] private Text textoMoedas;
     [SerializeField] private Text textoPowerUps;
+    [SerializeField] private Text textoVidas;
 
     [Header("Barra de Progresso")]
     [SerializeField] private GameObject containerProgresso;
@@ -32,15 +34,26 @@ public class InterfaceJogo : MonoBehaviour
 
     [Header("Painel de Vitória")]
     [SerializeField] private Text textoVitoria;
+
+    [Header("Painel de Derrota")]
+    [SerializeField] private Text textoDerrota;
     #endregion
 
     #region Configurações Visuais
-    [Header("Cores")]
-    [SerializeField] private Color corFundo = new Color(0.1f, 0.1f, 0.15f, 0.95f);
-    [SerializeField] private Color corTexto = Color.white;
-    [SerializeField] private Color corDestaque = new Color(1f, 0.85f, 0.2f, 1f);
-    [SerializeField] private Color corProgresso = new Color(0.2f, 0.8f, 0.3f, 1f);
-    [SerializeField] private Color corBorda = new Color(0.4f, 0.35f, 0.3f, 1f);
+    [Header("Cores de Madeira (igual ao tabuleiro)")]
+    [SerializeField] private Color corFundoPrincipal = new Color(0.28f, 0.18f, 0.10f, 0.98f);   // Ébano (igual moldura)
+    [SerializeField] private Color corFundoSecundario = new Color(0.35f, 0.25f, 0.15f, 0.95f); // Madeira média
+    [SerializeField] private Color corTexto = new Color(1f, 0.95f, 0.85f, 1f);                  // Creme claro
+    [SerializeField] private Color corDestaque = new Color(1f, 0.88f, 0.35f, 1f);              // Dourado
+    [SerializeField] private Color corProgresso = new Color(0.3f, 0.75f, 0.4f, 1f);            // Verde esmeralda
+    [SerializeField] private Color corBordaDourada = new Color(0.75f, 0.6f, 0.3f, 1f);         // Dourado moldura
+    [SerializeField] private Color corBordaInterna = new Color(0.5f, 0.4f, 0.25f, 0.7f);       // Madeira clara
+    [SerializeField] private Color corMadeiraClara = new Color(0.82f, 0.68f, 0.52f, 1f);       // Maple claro
+    [SerializeField] private Color corMadeiraEscura = new Color(0.58f, 0.42f, 0.28f, 1f);      // Nogueira
+    
+    // Compatibilidade
+    private Color corFundo => corFundoPrincipal;
+    private Color corBorda => corBordaDourada;
     #endregion
 
     #region Referências
@@ -164,10 +177,6 @@ public class InterfaceJogo : MonoBehaviour
         RectTransform tabuleiroRect = tabuleiro.GetComponent<RectTransform>();
         if (tabuleiroRect == null) return;
 
-        // Obter dimensões do canvas
-        float canvasWidth = canvasRect.rect.width;
-        float canvasHeight = canvasRect.rect.height;
-
         // Obter bounds do tabuleiro em coordenadas do canvas
         Vector3[] tabuleiroCorners = new Vector3[4];
         tabuleiroRect.GetWorldCorners(tabuleiroCorners);
@@ -198,38 +207,42 @@ public class InterfaceJogo : MonoBehaviour
             }
         }
 
-        // Calcular espaço disponível à direita do tabuleiro
-        float espacoDireita = (canvasWidth / 2f) - tabuleiroMax.x;
-        
-        // Calcular espaço disponível abaixo do tabuleiro
-        float espacoAbaixo = tabuleiroMin.y + (canvasHeight / 2f);
+        // Calcular dimensões e posição do tabuleiro
+        float tabuleiroAltura = tabuleiroMax.y - tabuleiroMin.y;
+        float tabuleiroCentroY = (tabuleiroMax.y + tabuleiroMin.y) / 2f;
+        float tabuleiroDireita = tabuleiroMax.x;
 
         RectTransform hudRect = painelHUD.GetComponent<RectTransform>();
+        
+        // Posicionar HUD exatamente ao lado direito do tabuleiro, com mesma altura
+        PosicionarAoLadoDoTabuleiro(hudRect, tabuleiroDireita, tabuleiroCentroY, tabuleiroAltura);
+    }
 
-        // Margem de segurança
-        float margem = 15f;
+    private void PosicionarAoLadoDoTabuleiro(RectTransform hudRect, float tabuleiroX, float tabuleiroCentroY, float tabuleiroAltura)
+    {
+        // Largura do HUD
+        float larguraHUD = 150f;
+        float margem = 12f;
 
-        // Decidir posicionamento: lateral ou inferior
-        if (espacoDireita >= 180f) // Espaço suficiente à direita
-        {
-            PosicionarLateral(hudRect, tabuleiroMax.x, canvasWidth, canvasHeight, margem);
-        }
-        else // Posicionar abaixo do tabuleiro
-        {
-            PosicionarInferior(hudRect, tabuleiroMin.y, canvasWidth, canvasHeight, margem);
-        }
+        // Usar ancoragem central para posicionamento absoluto
+        hudRect.anchorMin = new Vector2(0.5f, 0.5f);
+        hudRect.anchorMax = new Vector2(0.5f, 0.5f);
+        hudRect.pivot = new Vector2(0f, 0.5f); // Pivot na esquerda para alinhar ao tabuleiro
+        
+        // Posicionar exatamente à direita do tabuleiro
+        hudRect.anchoredPosition = new Vector2(tabuleiroX + margem, tabuleiroCentroY);
+        hudRect.sizeDelta = new Vector2(larguraHUD, tabuleiroAltura);
     }
 
     private void PosicionarLateral(RectTransform hudRect, float tabuleiroX, float canvasWidth, float canvasHeight, float margem)
     {
-        // Largura fixa minimalista
-        float larguraHUD = 130f;
-
-        hudRect.anchorMin = new Vector2(1f, 0.15f);
-        hudRect.anchorMax = new Vector2(1f, 0.85f);
-        hudRect.pivot = new Vector2(1f, 0.5f);
-        hudRect.sizeDelta = new Vector2(larguraHUD, 0f);
-        hudRect.anchoredPosition = new Vector2(-8f, 0f);
+        // Mantido para compatibilidade - não será usado
+        float larguraHUD = 150f;
+        hudRect.anchorMin = new Vector2(0.5f, 0.5f);
+        hudRect.anchorMax = new Vector2(0.5f, 0.5f);
+        hudRect.pivot = new Vector2(0f, 0.5f);
+        hudRect.sizeDelta = new Vector2(larguraHUD, 400f);
+        hudRect.anchoredPosition = new Vector2(tabuleiroX + margem, 0f);
     }
 
     private void PosicionarInferior(RectTransform hudRect, float tabuleiroY, float canvasWidth, float canvasHeight, float margem)
@@ -263,92 +276,285 @@ public class InterfaceJogo : MonoBehaviour
     #region Criação do Painel Principal
     private void CriarPainelPrincipal(Transform parent)
     {
+        // === PAINEL PRINCIPAL (posição será ajustada pelo AjustarLayoutResponsivo) ===
         GameObject painel = new GameObject("Painel HUD");
         painel.transform.SetParent(parent, false);
 
         RectTransform rt = painel.AddComponent<RectTransform>();
-        rt.anchorMin = new Vector2(1f, 0.15f);
-        rt.anchorMax = new Vector2(1f, 0.85f);
-        rt.pivot = new Vector2(1f, 0.5f);
-        rt.sizeDelta = new Vector2(140f, 0f);
-        rt.anchoredPosition = new Vector2(-10f, 0f);
+        // Posição inicial temporária - será recalculada
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0f, 0.5f);
+        rt.sizeDelta = new Vector2(150f, 400f);
+        rt.anchoredPosition = new Vector2(200f, 0f);
 
+        // Fundo de madeira escura (igual moldura do tabuleiro)
         Image fundo = painel.AddComponent<Image>();
-        fundo.color = new Color(0.08f, 0.08f, 0.12f, 0.9f);
+        fundo.color = new Color(0.18f, 0.12f, 0.07f, 1f); // Ébano profundo
 
-        Outline borda = painel.AddComponent<Outline>();
-        borda.effectColor = new Color(0.3f, 0.25f, 0.2f, 0.8f);
-        borda.effectDistance = new Vector2(1f, 1f);
+        // Borda dourada externa (igual tabuleiro)
+        Outline bordaExterna = painel.AddComponent<Outline>();
+        bordaExterna.effectColor = new Color(0.75f, 0.6f, 0.3f, 0.8f);
+        bordaExterna.effectDistance = new Vector2(2f, 2f);
+        
+        // Sombra profunda
+        Shadow sombraPainel = painel.AddComponent<Shadow>();
+        sombraPainel.effectColor = new Color(0f, 0f, 0f, 0.7f);
+        sombraPainel.effectDistance = new Vector2(6f, -6f);
 
         painelHUD = painel;
 
-        VerticalLayoutGroup layout = painel.AddComponent<VerticalLayoutGroup>();
-        layout.padding = new RectOffset(8, 8, 12, 12);
-        layout.spacing = 6f;
+        // === BORDA INTERNA DECORATIVA ===
+        GameObject bordaInterna = new GameObject("BordaInterna");
+        bordaInterna.transform.SetParent(painel.transform, false);
+        
+        RectTransform rtBorda = bordaInterna.AddComponent<RectTransform>();
+        rtBorda.anchorMin = Vector2.zero;
+        rtBorda.anchorMax = Vector2.one;
+        rtBorda.offsetMin = new Vector2(2f, 2f);
+        rtBorda.offsetMax = new Vector2(-2f, -2f);
+        
+        Image imgBorda = bordaInterna.AddComponent<Image>();
+        imgBorda.color = new Color(0.35f, 0.25f, 0.15f, 1f); // Madeira média
+        
+        Outline contornoBorda = bordaInterna.AddComponent<Outline>();
+        contornoBorda.effectColor = new Color(0.5f, 0.4f, 0.25f, 0.6f);
+        contornoBorda.effectDistance = new Vector2(-1f, 1f); // Brilho no topo
+
+        // === CONTAINER DE CONTEÚDO ===
+        GameObject conteudo = new GameObject("Conteudo");
+        conteudo.transform.SetParent(painel.transform, false);
+        
+        RectTransform rtConteudo = conteudo.AddComponent<RectTransform>();
+        rtConteudo.anchorMin = Vector2.zero;
+        rtConteudo.anchorMax = Vector2.one;
+        rtConteudo.offsetMin = new Vector2(3f, 3f);
+        rtConteudo.offsetMax = new Vector2(-3f, -3f);
+
+        VerticalLayoutGroup layout = conteudo.AddComponent<VerticalLayoutGroup>();
+        layout.padding = new RectOffset(2, 2, 2, 2);
+        layout.spacing = 2f;
         layout.childControlWidth = true;
-        layout.childControlHeight = false;
+        layout.childControlHeight = true;
         layout.childForceExpandWidth = true;
-        layout.childForceExpandHeight = false;
+        layout.childForceExpandHeight = true;
         layout.childAlignment = TextAnchor.UpperCenter;
 
-        // Criar elementos minimalistas
-        CriarItemHUD(painel.transform, "Pontos", ref textoPontuacao, corDestaque, 18);
-        CriarLinhaFina(painel.transform);
-        CriarItemHUD(painel.transform, "Moedas", ref textoMoedas, Color.yellow, 16);
-        CriarItemHUD(painel.transform, "Nível", ref textoNivel, Color.cyan, 16);
-        CriarItemHUD(painel.transform, "Tempo", ref textoTempo, corTexto, 14);
-        CriarLinhaFina(painel.transform);
-        CriarBarraProgressoSimples(painel.transform);
-        CriarLinhaFina(painel.transform);
-        CriarItemHUD(painel.transform, "Power", ref textoPowerUps, new Color(0.5f, 0.5f, 0.5f), 11);
+        // === CRIAR ELEMENTOS COM VISUAL DE MADEIRA ===
+        CriarTituloHUD(conteudo.transform);
+        CriarItemVidasPremium(conteudo.transform);
+        CriarItemHUDCompacto(conteudo.transform, "PONTOS", ref textoPontuacao, corDestaque, 22, true);
+        CriarItemHUDCompacto(conteudo.transform, "POWER-UP", ref textoPowerUps, new Color(0.85f, 0.65f, 1f), 14, false);
+        CriarItemHUDCompacto(conteudo.transform, "NÍVEL", ref textoNivel, new Color(0.6f, 0.9f, 1f), 17, false);
+        CriarItemHUDCompacto(conteudo.transform, "TEMPO", ref textoTempo, corTexto, 16, false);
+        CriarBarraProgressoCompacta(conteudo.transform);
     }
 
-    private void CriarLinhaFina(Transform parent)
+    private void CriarTituloHUD(Transform parent)
     {
-        GameObject sep = new GameObject("Linha");
+        GameObject titulo = new GameObject("TituloHUD");
+        titulo.transform.SetParent(parent, false);
+        
+        LayoutElement le = titulo.AddComponent<LayoutElement>();
+        le.preferredHeight = 22f;
+        le.flexibleWidth = 1f;
+        
+        // Fundo sutil de madeira clara
+        Image fundoTitulo = titulo.AddComponent<Image>();
+        fundoTitulo.color = new Color(0.45f, 0.32f, 0.2f, 0.6f);
+        
+        // Texto do título
+        GameObject textoObj = new GameObject("Texto");
+        textoObj.transform.SetParent(titulo.transform, false);
+        
+        RectTransform rtTexto = textoObj.AddComponent<RectTransform>();
+        rtTexto.anchorMin = Vector2.zero;
+        rtTexto.anchorMax = Vector2.one;
+        rtTexto.offsetMin = Vector2.zero;
+        rtTexto.offsetMax = Vector2.zero;
+        
+        Text textoTitulo = textoObj.AddComponent<Text>();
+        textoTitulo.text = "◆ STATUS ◆";
+        textoTitulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textoTitulo.fontSize = 16;
+        textoTitulo.fontStyle = FontStyle.Bold;
+        textoTitulo.color = new Color(1f, 0.9f, 0.65f); // Dourado claro
+        textoTitulo.alignment = TextAnchor.MiddleCenter;
+        
+        Outline brilho = textoObj.AddComponent<Outline>();
+        brilho.effectColor = new Color(0.15f, 0.1f, 0.05f, 0.9f);
+        brilho.effectDistance = new Vector2(1f, 1f);
+    }
+
+    private void CriarItemVidasPremium(Transform parent)
+    {
+        GameObject container = new GameObject("Item_Vidas");
+        container.transform.SetParent(parent, false);
+
+        LayoutElement le = container.AddComponent<LayoutElement>();
+        le.preferredHeight = 26f;
+        le.flexibleWidth = 1f;
+
+        // Fundo de madeira com vermelho sutil
+        Image fundoVidas = container.AddComponent<Image>();
+        fundoVidas.color = new Color(0.4f, 0.22f, 0.15f, 0.7f);
+        
+        Outline bordaVidas = container.AddComponent<Outline>();
+        bordaVidas.effectColor = new Color(0.7f, 0.35f, 0.25f, 0.5f);
+        bordaVidas.effectDistance = new Vector2(1f, 1f);
+
+        // Label "VIDAS"
+        GameObject labelObj = new GameObject("Label");
+        labelObj.transform.SetParent(container.transform, false);
+        
+        RectTransform rtLabel = labelObj.AddComponent<RectTransform>();
+        rtLabel.anchorMin = new Vector2(0f, 0.5f);
+        rtLabel.anchorMax = new Vector2(0.35f, 1f);
+        rtLabel.offsetMin = new Vector2(6f, 0f);
+        rtLabel.offsetMax = Vector2.zero;
+        
+        Text labelTexto = labelObj.AddComponent<Text>();
+        labelTexto.text = "VIDAS";
+        labelTexto.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        labelTexto.fontSize = 11;
+        labelTexto.color = new Color(0.75f, 0.6f, 0.5f);
+        labelTexto.alignment = TextAnchor.MiddleLeft;
+
+        // Valor das vidas (corações)
+        GameObject valorObj = new GameObject("Valor");
+        valorObj.transform.SetParent(container.transform, false);
+
+        RectTransform rtValor = valorObj.AddComponent<RectTransform>();
+        rtValor.anchorMin = new Vector2(0f, 0f);
+        rtValor.anchorMax = new Vector2(1f, 0.65f);
+        rtValor.offsetMin = new Vector2(4f, 2f);
+        rtValor.offsetMax = new Vector2(-4f, 0f);
+
+        textoVidas = valorObj.AddComponent<Text>();
+        textoVidas.text = "❤️❤️❤️";
+        textoVidas.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textoVidas.fontSize = 22;
+        textoVidas.color = new Color(1f, 0.35f, 0.35f);
+        textoVidas.alignment = TextAnchor.MiddleCenter;
+
+        Outline outline = valorObj.AddComponent<Outline>();
+        outline.effectColor = new Color(0.2f, 0.05f, 0.02f, 0.9f);
+        outline.effectDistance = new Vector2(1f, 1f);
+    }
+
+    private void CriarSeparadorElegante(Transform parent)
+    {
+        GameObject sep = new GameObject("SeparadorElegante");
+        sep.transform.SetParent(parent, false);
+
+        LayoutElement le = sep.AddComponent<LayoutElement>();
+        le.preferredHeight = 4f;
+        le.flexibleWidth = 1f;
+        
+        // Linha central
+        GameObject linhaCentral = new GameObject("LinhaCentral");
+        linhaCentral.transform.SetParent(sep.transform, false);
+        
+        RectTransform rtLinha = linhaCentral.AddComponent<RectTransform>();
+        rtLinha.anchorMin = new Vector2(0.15f, 0.4f);
+        rtLinha.anchorMax = new Vector2(0.85f, 0.6f);
+        rtLinha.offsetMin = Vector2.zero;
+        rtLinha.offsetMax = Vector2.zero;
+        
+        Image linha = linhaCentral.AddComponent<Image>();
+        linha.color = corBordaDourada * 0.5f;
+    }
+
+    private void CriarSeparadorFino(Transform parent)
+    {
+        GameObject sep = new GameObject("LinhaFina");
         sep.transform.SetParent(parent, false);
 
         Image linha = sep.AddComponent<Image>();
-        linha.color = new Color(1f, 1f, 1f, 0.15f);
+        linha.color = new Color(0.5f, 0.4f, 0.25f, 0.5f); // Tom de madeira
 
         LayoutElement le = sep.AddComponent<LayoutElement>();
         le.preferredHeight = 1f;
         le.flexibleWidth = 1f;
     }
 
-    private void CriarItemHUD(Transform parent, string label, ref Text textoRef, Color cor, int tamanhoFonte)
+    private void CriarSeparadorMadeira(Transform parent)
+    {
+        GameObject sep = new GameObject("SeparadorMadeira");
+        sep.transform.SetParent(parent, false);
+
+        LayoutElement le = sep.AddComponent<LayoutElement>();
+        le.preferredHeight = 2f;
+        le.flexibleWidth = 1f;
+        
+        // Linha central com gradiente de madeira
+        GameObject linhaCentral = new GameObject("LinhaCentral");
+        linhaCentral.transform.SetParent(sep.transform, false);
+        
+        RectTransform rtLinha = linhaCentral.AddComponent<RectTransform>();
+        rtLinha.anchorMin = new Vector2(0.1f, 0.3f);
+        rtLinha.anchorMax = new Vector2(0.9f, 0.7f);
+        rtLinha.offsetMin = Vector2.zero;
+        rtLinha.offsetMax = Vector2.zero;
+        
+        Image linha = linhaCentral.AddComponent<Image>();
+        linha.color = new Color(0.55f, 0.42f, 0.28f, 0.8f); // Nogueira
+        
+        // Brilho superior (simula textura de madeira)
+        Outline brilho = linhaCentral.AddComponent<Outline>();
+        brilho.effectColor = new Color(0.75f, 0.6f, 0.35f, 0.4f);
+        brilho.effectDistance = new Vector2(0f, 1f);
+    }
+
+    private void CriarItemHUDCompacto(Transform parent, string label, ref Text textoRef, Color cor, int tamanhoFonte, bool destacar)
     {
         GameObject container = new GameObject($"Item_{label}");
         container.transform.SetParent(parent, false);
 
         LayoutElement le = container.AddComponent<LayoutElement>();
-        le.preferredHeight = tamanhoFonte + 16f;
+        le.preferredHeight = tamanhoFonte + 4f; // Altura mínima
         le.flexibleWidth = 1f;
 
-        VerticalLayoutGroup vl = container.AddComponent<VerticalLayoutGroup>();
-        vl.childControlWidth = true;
-        vl.childControlHeight = true;
-        vl.childForceExpandWidth = true;
-        vl.childForceExpandHeight = false;
-        vl.spacing = 1f;
+        // Fundo de madeira clara/média
+        Image fundoItem = container.AddComponent<Image>();
+        if (destacar)
+        {
+            fundoItem.color = new Color(0.45f, 0.32f, 0.2f, 0.7f);
+        }
+        else
+        {
+            fundoItem.color = new Color(0.38f, 0.26f, 0.16f, 0.5f);
+        }
+        
+        Outline bordaItem = container.AddComponent<Outline>();
+        bordaItem.effectColor = new Color(0.55f, 0.42f, 0.28f, destacar ? 0.6f : 0.3f);
+        bordaItem.effectDistance = new Vector2(1f, 1f);
 
-        // Label pequeno
         GameObject labelObj = new GameObject("Label");
         labelObj.transform.SetParent(container.transform, false);
+        
+        RectTransform rtLabel = labelObj.AddComponent<RectTransform>();
+        rtLabel.anchorMin = new Vector2(0f, 0f);
+        rtLabel.anchorMax = new Vector2(0.45f, 1f);
+        rtLabel.offsetMin = new Vector2(4f, 0f);
+        rtLabel.offsetMax = new Vector2(0f, 0f);
 
         Text textoLabel = labelObj.AddComponent<Text>();
-        textoLabel.text = label.ToUpper();
+        textoLabel.text = label;
         textoLabel.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        textoLabel.fontSize = 9;
-        textoLabel.color = new Color(0.5f, 0.5f, 0.5f);
-        textoLabel.alignment = TextAnchor.MiddleCenter;
+        textoLabel.fontSize = 12;
+        textoLabel.fontStyle = FontStyle.Normal;
+        textoLabel.color = new Color(0.85f, 0.75f, 0.6f);
+        textoLabel.alignment = TextAnchor.MiddleLeft;
 
-        LayoutElement leLabel = labelObj.AddComponent<LayoutElement>();
-        leLabel.preferredHeight = 10f;
-
-        // Valor
         GameObject valorObj = new GameObject("Valor");
         valorObj.transform.SetParent(container.transform, false);
+        
+        RectTransform rtValor = valorObj.AddComponent<RectTransform>();
+        rtValor.anchorMin = new Vector2(0.45f, 0f);
+        rtValor.anchorMax = new Vector2(1f, 1f);
+        rtValor.offsetMin = new Vector2(0f, 0f);
+        rtValor.offsetMax = new Vector2(-4f, 0f);
 
         textoRef = valorObj.AddComponent<Text>();
         textoRef.text = "0";
@@ -356,26 +562,27 @@ public class InterfaceJogo : MonoBehaviour
         textoRef.fontSize = tamanhoFonte;
         textoRef.fontStyle = FontStyle.Bold;
         textoRef.color = cor;
-        textoRef.alignment = TextAnchor.MiddleCenter;
-        textoRef.horizontalOverflow = HorizontalWrapMode.Overflow;
-        textoRef.verticalOverflow = VerticalWrapMode.Overflow;
+        textoRef.alignment = TextAnchor.MiddleRight;
 
-        // Contorno
         Outline outline = valorObj.AddComponent<Outline>();
-        outline.effectColor = Color.black;
+        outline.effectColor = new Color(0.1f, 0.06f, 0.02f, 0.95f);
         outline.effectDistance = new Vector2(1f, 1f);
     }
 
-    private void CriarBarraProgressoSimples(Transform parent)
+    private void CriarBarraProgressoCompacta(Transform parent)
     {
         GameObject container = new GameObject("Progresso");
         container.transform.SetParent(parent, false);
 
         LayoutElement le = container.AddComponent<LayoutElement>();
-        le.preferredHeight = 24f;
+        le.preferredHeight = 16f;
         le.flexibleWidth = 1f;
+        
+        // Fundo de madeira
+        Image fundoContainer = container.AddComponent<Image>();
+        fundoContainer.color = new Color(0.38f, 0.26f, 0.16f, 0.6f);
 
-        // Label
+        // Label no topo - fonte maior
         GameObject labelObj = new GameObject("Label");
         labelObj.transform.SetParent(container.transform, false);
 
@@ -388,22 +595,26 @@ public class InterfaceJogo : MonoBehaviour
         Text textoLabel = labelObj.AddComponent<Text>();
         textoLabel.text = "PROGRESSO";
         textoLabel.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        textoLabel.fontSize = 8;
-        textoLabel.color = new Color(0.5f, 0.5f, 0.5f);
+        textoLabel.fontSize = 11;
+        textoLabel.color = new Color(0.85f, 0.75f, 0.6f);
         textoLabel.alignment = TextAnchor.MiddleCenter;
 
-        // Barra
-        GameObject barraContainer = new GameObject("Barra");
+        // Container da barra
+        GameObject barraContainer = new GameObject("BarraContainer");
         barraContainer.transform.SetParent(container.transform, false);
 
         RectTransform rtBarra = barraContainer.AddComponent<RectTransform>();
-        rtBarra.anchorMin = new Vector2(0.05f, 0f);
-        rtBarra.anchorMax = new Vector2(0.95f, 0.6f);
+        rtBarra.anchorMin = new Vector2(0.04f, 0.1f);
+        rtBarra.anchorMax = new Vector2(0.96f, 0.55f);
         rtBarra.offsetMin = Vector2.zero;
         rtBarra.offsetMax = Vector2.zero;
 
         Image fundoBarra = barraContainer.AddComponent<Image>();
-        fundoBarra.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+        fundoBarra.color = new Color(0.2f, 0.14f, 0.08f, 1f); // Madeira escura
+        
+        Outline bordaBarra = barraContainer.AddComponent<Outline>();
+        bordaBarra.effectColor = new Color(0.55f, 0.42f, 0.28f, 0.6f);
+        bordaBarra.effectDistance = new Vector2(1f, 1f);
 
         containerProgresso = barraContainer;
 
@@ -414,16 +625,16 @@ public class InterfaceJogo : MonoBehaviour
         RectTransform rtFill = preencher.AddComponent<RectTransform>();
         rtFill.anchorMin = Vector2.zero;
         rtFill.anchorMax = Vector2.one;
-        rtFill.offsetMin = new Vector2(1f, 1f);
-        rtFill.offsetMax = new Vector2(-1f, -1f);
+        rtFill.offsetMin = new Vector2(2f, 2f);
+        rtFill.offsetMax = new Vector2(-2f, -2f);
 
         barraProgresso = preencher.AddComponent<Image>();
-        barraProgresso.color = corProgresso;
+        barraProgresso.color = new Color(0.35f, 0.75f, 0.45f, 1f); // Verde esmeralda
         barraProgresso.type = Image.Type.Filled;
         barraProgresso.fillMethod = Image.FillMethod.Horizontal;
         barraProgresso.fillAmount = 0f;
 
-        // Texto %
+        // Texto percentual - fonte maior
         GameObject textoObj = new GameObject("Texto");
         textoObj.transform.SetParent(barraContainer.transform, false);
 
@@ -436,15 +647,32 @@ public class InterfaceJogo : MonoBehaviour
         textoProgresso = textoObj.AddComponent<Text>();
         textoProgresso.text = "0%";
         textoProgresso.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        textoProgresso.fontSize = 10;
+        textoProgresso.fontSize = 13;
         textoProgresso.fontStyle = FontStyle.Bold;
-        textoProgresso.color = Color.white;
+        textoProgresso.color = new Color(1f, 0.98f, 0.9f);
         textoProgresso.alignment = TextAnchor.MiddleCenter;
 
-        Outline outline = textoObj.AddComponent<Outline>();
-        outline.effectColor = Color.black;
-        outline.effectDistance = new Vector2(1f, 1f);
+        Outline outlineTexto = textoObj.AddComponent<Outline>();
+        outlineTexto.effectColor = new Color(0.1f, 0.06f, 0.02f, 0.95f);
+        outlineTexto.effectDistance = new Vector2(1f, 1f);
     }
+
+    private void CriarItemHUDPremium(Transform parent, string label, ref Text textoRef, Color cor, int tamanhoFonte, bool destacar)
+    {
+        CriarItemHUDCompacto(parent, label, ref textoRef, cor, tamanhoFonte, destacar);
+    }
+
+    private void CriarBarraProgressoPremium(Transform parent)
+    {
+        CriarBarraProgressoCompacta(parent);
+    }
+
+    // Manter compatibilidade com métodos antigos
+    private void CriarItemVidas(Transform parent) => CriarItemVidasPremium(parent);
+    private void CriarLinhaFina(Transform parent) => CriarSeparadorFino(parent);
+    private void CriarItemHUD(Transform parent, string label, ref Text textoRef, Color cor, int tamanhoFonte) 
+        => CriarItemHUDPremium(parent, label, ref textoRef, cor, tamanhoFonte, false);
+    private void CriarBarraProgressoSimples(Transform parent) => CriarBarraProgressoPremium(parent);
 
     private void AdicionarContorno(GameObject obj)
     {
@@ -513,60 +741,89 @@ public class InterfaceJogo : MonoBehaviour
         rt.offsetMax = Vector2.zero;
 
         Image fundo = painel.AddComponent<Image>();
-        fundo.color = new Color(0f, 0f, 0f, 0.9f);
+        fundo.color = new Color(0f, 0f, 0f, 0.85f);
 
         painelVitoria = painel;
 
-        // Caixa central responsiva
+        // Caixa central com gradiente verde
         GameObject caixa = new GameObject("Caixa");
         caixa.transform.SetParent(painel.transform, false);
 
         RectTransform rtCaixa = caixa.AddComponent<RectTransform>();
-        rtCaixa.anchorMin = new Vector2(0.15f, 0.2f);
-        rtCaixa.anchorMax = new Vector2(0.85f, 0.8f);
+        rtCaixa.anchorMin = new Vector2(0.1f, 0.15f);
+        rtCaixa.anchorMax = new Vector2(0.9f, 0.85f);
         rtCaixa.offsetMin = Vector2.zero;
         rtCaixa.offsetMax = Vector2.zero;
 
         Image fundoCaixa = caixa.AddComponent<Image>();
-        fundoCaixa.color = new Color(0.08f, 0.35f, 0.08f, 0.98f);
+        fundoCaixa.color = new Color(0.05f, 0.25f, 0.1f, 0.98f);
 
+        // Borda dourada dupla
         Outline bordaCaixa = caixa.AddComponent<Outline>();
-        bordaCaixa.effectColor = corDestaque;
-        bordaCaixa.effectDistance = new Vector2(3f, 3f);
+        bordaCaixa.effectColor = new Color(1f, 0.85f, 0.2f, 1f);
+        bordaCaixa.effectDistance = new Vector2(4f, 4f);
 
-        // Texto
+        Shadow sombraCaixa = caixa.AddComponent<Shadow>();
+        sombraCaixa.effectColor = new Color(0f, 0f, 0f, 0.7f);
+        sombraCaixa.effectDistance = new Vector2(8f, -8f);
+
+        // Título "VITÓRIA"
+        GameObject tituloObj = new GameObject("Titulo");
+        tituloObj.transform.SetParent(caixa.transform, false);
+
+        RectTransform rtTitulo = tituloObj.AddComponent<RectTransform>();
+        rtTitulo.anchorMin = new Vector2(0.05f, 0.7f);
+        rtTitulo.anchorMax = new Vector2(0.95f, 0.95f);
+        rtTitulo.offsetMin = Vector2.zero;
+        rtTitulo.offsetMax = Vector2.zero;
+
+        Text titulo = tituloObj.AddComponent<Text>();
+        titulo.text = "VITÓRIA!";
+        titulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        titulo.fontSize = 32;
+        titulo.fontStyle = FontStyle.Bold;
+        titulo.color = new Color(1f, 0.9f, 0.2f, 1f);
+        titulo.alignment = TextAnchor.MiddleCenter;
+
+        Outline brilhoTitulo = tituloObj.AddComponent<Outline>();
+        brilhoTitulo.effectColor = new Color(1f, 0.7f, 0f, 0.8f);
+        brilhoTitulo.effectDistance = new Vector2(2f, 2f);
+
+        // Subtítulo com pontuação
         GameObject textoObj = new GameObject("Texto");
         textoObj.transform.SetParent(caixa.transform, false);
 
         RectTransform rtTexto = textoObj.AddComponent<RectTransform>();
-        rtTexto.anchorMin = new Vector2(0.05f, 0.4f);
-        rtTexto.anchorMax = new Vector2(0.95f, 0.95f);
+        rtTexto.anchorMin = new Vector2(0.1f, 0.4f);
+        rtTexto.anchorMax = new Vector2(0.9f, 0.68f);
         rtTexto.offsetMin = Vector2.zero;
         rtTexto.offsetMax = Vector2.zero;
 
         textoVitoria = textoObj.AddComponent<Text>();
-        textoVitoria.text = "🏆 VITÓRIA! 🏆";
+        textoVitoria.text = "Parabéns! Você coletou todas as moedas!";
         textoVitoria.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        textoVitoria.fontSize = 24;
-        textoVitoria.fontStyle = FontStyle.Bold;
-        textoVitoria.color = Color.yellow;
+        textoVitoria.fontSize = 18;
+        textoVitoria.fontStyle = FontStyle.Normal;
+        textoVitoria.color = new Color(0.9f, 1f, 0.9f, 1f);
         textoVitoria.alignment = TextAnchor.MiddleCenter;
 
         AdicionarContorno(textoObj);
 
-        // Botões
-        CriarBotao(caixa.transform, "Reiniciar", "🔄 JOGAR NOVAMENTE",
-            new Vector2(0.08f, 0.08f), new Vector2(0.48f, 0.32f),
+        // Botões estilizados
+        CriarBotaoEstilizado(caixa.transform, "Reiniciar", "JOGAR NOVAMENTE",
+            new Vector2(0.1f, 0.08f), new Vector2(0.48f, 0.28f),
+            new Color(0.1f, 0.5f, 0.2f, 1f),
             () => gerenciador?.ReiniciarJogo());
 
-        CriarBotao(caixa.transform, "Menu", "🏠 MENU",
-            new Vector2(0.52f, 0.08f), new Vector2(0.92f, 0.32f),
+        CriarBotaoEstilizado(caixa.transform, "Menu", "MENU PRINCIPAL",
+            new Vector2(0.52f, 0.08f), new Vector2(0.9f, 0.28f),
+            new Color(0.4f, 0.35f, 0.2f, 1f),
             () => UnityEngine.SceneManagement.SceneManager.LoadScene("Menu"));
 
         painel.SetActive(false);
     }
 
-    private void CriarBotao(Transform parent, string nome, string texto, Vector2 anchorMin, Vector2 anchorMax, System.Action aoClicar)
+    private void CriarBotaoEstilizado(Transform parent, string nome, string texto, Vector2 anchorMin, Vector2 anchorMax, Color corBase, System.Action aoClicar)
     {
         GameObject btn = new GameObject($"Botão {nome}");
         btn.transform.SetParent(parent, false);
@@ -578,14 +835,24 @@ public class InterfaceJogo : MonoBehaviour
         rt.offsetMax = Vector2.zero;
 
         Image img = btn.AddComponent<Image>();
-        img.color = new Color(0.15f, 0.25f, 0.7f, 1f);
+        img.color = corBase;
+
+        // Borda do botão
+        Outline bordaBotao = btn.AddComponent<Outline>();
+        bordaBotao.effectColor = new Color(corBase.r + 0.3f, corBase.g + 0.3f, corBase.b + 0.2f, 1f);
+        bordaBotao.effectDistance = new Vector2(2f, 2f);
+
+        Shadow sombraBotao = btn.AddComponent<Shadow>();
+        sombraBotao.effectColor = new Color(0f, 0f, 0f, 0.5f);
+        sombraBotao.effectDistance = new Vector2(3f, -3f);
 
         Button botao = btn.AddComponent<Button>();
         botao.onClick.AddListener(() => aoClicar?.Invoke());
 
         ColorBlock cores = botao.colors;
-        cores.highlightedColor = new Color(0.25f, 0.4f, 0.9f, 1f);
-        cores.pressedColor = new Color(0.1f, 0.15f, 0.5f, 1f);
+        cores.normalColor = Color.white;
+        cores.highlightedColor = new Color(1.2f, 1.2f, 1.2f, 1f);
+        cores.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
         botao.colors = cores;
 
         // Texto
@@ -595,18 +862,25 @@ public class InterfaceJogo : MonoBehaviour
         RectTransform rtTexto = textoObj.AddComponent<RectTransform>();
         rtTexto.anchorMin = Vector2.zero;
         rtTexto.anchorMax = Vector2.one;
-        rtTexto.offsetMin = Vector2.zero;
-        rtTexto.offsetMax = Vector2.zero;
+        rtTexto.offsetMin = new Vector2(5f, 5f);
+        rtTexto.offsetMax = new Vector2(-5f, -5f);
 
         Text textoBotao = textoObj.AddComponent<Text>();
         textoBotao.text = texto;
         textoBotao.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        textoBotao.fontSize = 16;
+        textoBotao.fontSize = 14;
         textoBotao.fontStyle = FontStyle.Bold;
         textoBotao.color = Color.white;
         textoBotao.alignment = TextAnchor.MiddleCenter;
 
-        AdicionarContorno(textoObj);
+        Outline contornoTexto = textoObj.AddComponent<Outline>();
+        contornoTexto.effectColor = new Color(0f, 0f, 0f, 0.8f);
+        contornoTexto.effectDistance = new Vector2(1f, 1f);
+    }
+
+    private void CriarBotao(Transform parent, string nome, string texto, Vector2 anchorMin, Vector2 anchorMax, System.Action aoClicar)
+    {
+        CriarBotaoEstilizado(parent, nome, texto, anchorMin, anchorMax, new Color(0.15f, 0.25f, 0.7f, 1f), aoClicar);
     }
     #endregion
 
@@ -816,6 +1090,166 @@ public class InterfaceJogo : MonoBehaviour
     }
 
     public void ShowGameCompletionPanel() => MostrarPainelConclusao();
+    #endregion
+
+    #region Painel de Derrota
+    public void MostrarPainelDerrota(int pontuacao, float tempo, int nivel, int moedas)
+    {
+        // Criar painel de derrota se não existir
+        if (painelDerrota == null)
+        {
+            CriarPainelDerrota(canvas.transform);
+        }
+
+        if (painelDerrota != null)
+        {
+            painelDerrota.SetActive(true);
+            
+            if (textoDerrota != null)
+            {
+                textoDerrota.text = $"💀 GAME OVER 💀\n\n" +
+                                   $"💰 {pontuacao:N0} pontos\n" +
+                                   $"⏱️ {FormatarTempo(tempo)}\n" +
+                                   $"🚀 Nível {nivel}\n" +
+                                   $"🪙 {moedas} moedas";
+            }
+        }
+    }
+
+    private void CriarPainelDerrota(Transform parent)
+    {
+        GameObject painel = new GameObject("Painel Derrota");
+        painel.transform.SetParent(parent, false);
+
+        RectTransform rt = painel.AddComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+
+        Image fundo = painel.AddComponent<Image>();
+        fundo.color = new Color(0.15f, 0f, 0f, 0.85f);
+
+        painelDerrota = painel;
+
+        GameObject caixa = new GameObject("Caixa");
+        caixa.transform.SetParent(painel.transform, false);
+
+        RectTransform rtCaixa = caixa.AddComponent<RectTransform>();
+        rtCaixa.anchorMin = new Vector2(0.1f, 0.15f);
+        rtCaixa.anchorMax = new Vector2(0.9f, 0.85f);
+        rtCaixa.offsetMin = Vector2.zero;
+        rtCaixa.offsetMax = Vector2.zero;
+
+        Image fundoCaixa = caixa.AddComponent<Image>();
+        fundoCaixa.color = new Color(0.2f, 0.03f, 0.03f, 0.98f);
+
+        Outline bordaCaixa = caixa.AddComponent<Outline>();
+        bordaCaixa.effectColor = new Color(0.8f, 0.2f, 0.1f, 1f);
+        bordaCaixa.effectDistance = new Vector2(4f, 4f);
+
+        Shadow sombraCaixa = caixa.AddComponent<Shadow>();
+        sombraCaixa.effectColor = new Color(0f, 0f, 0f, 0.8f);
+        sombraCaixa.effectDistance = new Vector2(8f, -8f);
+
+        GameObject tituloObj = new GameObject("Titulo");
+        tituloObj.transform.SetParent(caixa.transform, false);
+
+        RectTransform rtTitulo = tituloObj.AddComponent<RectTransform>();
+        rtTitulo.anchorMin = new Vector2(0.05f, 0.7f);
+        rtTitulo.anchorMax = new Vector2(0.95f, 0.95f);
+        rtTitulo.offsetMin = Vector2.zero;
+        rtTitulo.offsetMax = Vector2.zero;
+
+        Text titulo = tituloObj.AddComponent<Text>();
+        titulo.text = "GAME OVER";
+        titulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        titulo.fontSize = 32;
+        titulo.fontStyle = FontStyle.Bold;
+        titulo.color = new Color(1f, 0.3f, 0.2f, 1f);
+        titulo.alignment = TextAnchor.MiddleCenter;
+
+        Outline brilhoTitulo = tituloObj.AddComponent<Outline>();
+        brilhoTitulo.effectColor = new Color(0.5f, 0f, 0f, 0.8f);
+        brilhoTitulo.effectDistance = new Vector2(2f, 2f);
+
+        GameObject textoObj = new GameObject("Texto");
+        textoObj.transform.SetParent(caixa.transform, false);
+
+        RectTransform rtTexto = textoObj.AddComponent<RectTransform>();
+        rtTexto.anchorMin = new Vector2(0.1f, 0.4f);
+        rtTexto.anchorMax = new Vector2(0.9f, 0.68f);
+        rtTexto.offsetMin = Vector2.zero;
+        rtTexto.offsetMax = Vector2.zero;
+
+        textoDerrota = textoObj.AddComponent<Text>();
+        textoDerrota.text = "Você perdeu todas as vidas!";
+        textoDerrota.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textoDerrota.fontSize = 18;
+        textoDerrota.fontStyle = FontStyle.Normal;
+        textoDerrota.color = new Color(1f, 0.85f, 0.85f, 1f);
+        textoDerrota.alignment = TextAnchor.MiddleCenter;
+
+        AdicionarContorno(textoObj);
+
+        CriarBotaoEstilizado(caixa.transform, "Reiniciar", "TENTAR NOVAMENTE",
+            new Vector2(0.1f, 0.08f), new Vector2(0.48f, 0.28f),
+            new Color(0.6f, 0.15f, 0.1f, 1f),
+            () => gerenciador?.ReiniciarJogo());
+
+        CriarBotaoEstilizado(caixa.transform, "Menu", "MENU PRINCIPAL",
+            new Vector2(0.52f, 0.08f), new Vector2(0.9f, 0.28f),
+            new Color(0.35f, 0.25f, 0.2f, 1f),
+            () => UnityEngine.SceneManagement.SceneManager.LoadScene("Menu"));
+
+        painel.SetActive(false);
+    }
+    #endregion
+
+    #region Atualização de Vidas
+    public void AtualizarVidas(int vidasAtuais, int vidasMaximas)
+    {
+        if (textoVidas == null) return;
+
+        string coracoes = "";
+        for (int i = 0; i < vidasMaximas; i++)
+        {
+            if (i < vidasAtuais)
+                coracoes += "❤️";
+            else
+                coracoes += "🖤";
+        }
+        textoVidas.text = coracoes;
+
+        if (vidasAtuais < vidasMaximas)
+        {
+            StartCoroutine(FlashVidas());
+        }
+    }
+
+    private IEnumerator FlashVidas()
+    {
+        if (textoVidas == null) yield break;
+
+        Color corOriginal = textoVidas.color;
+        textoVidas.color = Color.white;
+        textoVidas.transform.localScale = Vector3.one * 1.4f;
+
+        float tempo = 0f;
+        float duracao = 0.3f;
+
+        while (tempo < duracao)
+        {
+            tempo += Time.deltaTime;
+            float t = tempo / duracao;
+            textoVidas.transform.localScale = Vector3.Lerp(Vector3.one * 1.4f, Vector3.one, t);
+            textoVidas.color = Color.Lerp(Color.white, corOriginal, t);
+            yield return null;
+        }
+
+        textoVidas.transform.localScale = Vector3.one;
+        textoVidas.color = corOriginal;
+    }
     #endregion
 }
 

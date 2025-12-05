@@ -270,12 +270,17 @@ public class Coletavel : MonoBehaviour
     #region Criação de Sprites
     private Sprite CriarSpriteMoeda()
     {
-        int tamanho = 32;
+        int tamanho = 48;
         Texture2D textura = new Texture2D(tamanho, tamanho, TextureFormat.RGBA32, false);
 
         Vector2 centro = new Vector2(tamanho / 2f, tamanho / 2f);
-        float raioExterno = tamanho / 2f - 2f;
-        float raioInterno = raioExterno * 0.7f;
+        float raioExterno = tamanho / 2f - 3f;
+
+        // Cores premium para moeda dourada
+        Color ouroEscuro = new Color(0.72f, 0.53f, 0.04f, 1f);
+        Color ouroBase = new Color(0.95f, 0.75f, 0.15f, 1f);
+        Color ouroClaro = new Color(1f, 0.92f, 0.55f, 1f);
+        Color brilho = new Color(1f, 1f, 0.9f, 1f);
 
         for (int x = 0; x < tamanho; x++)
         {
@@ -286,20 +291,46 @@ public class Coletavel : MonoBehaviour
 
                 if (distancia <= raioExterno)
                 {
-                    if (distancia > raioInterno)
+                    // Gradiente radial para efeito 3D
+                    float t = distancia / raioExterno;
+                    
+                    // Borda escura
+                    if (t > 0.85f)
                     {
-                        corPixel = new Color(0.9f, 0.7f, 0.1f, 1f);
+                        corPixel = Color.Lerp(ouroBase, ouroEscuro, (t - 0.85f) / 0.15f);
                     }
+                    // Corpo principal com gradiente
                     else
                     {
-                        corPixel = new Color(1f, 0.85f, 0.3f, 1f);
+                        corPixel = Color.Lerp(ouroClaro, ouroBase, t / 0.85f);
                     }
 
-                    // Brilho
-                    float distanciaCentro = Vector2.Distance(new Vector2(x, y), centro + new Vector2(-3, 3));
-                    if (distanciaCentro < 4f)
+                    // Círculo interno (símbolo $)
+                    float distanciaInterna = Vector2.Distance(new Vector2(x, y), centro);
+                    if (distanciaInterna < raioExterno * 0.5f)
                     {
-                        corPixel = Color.Lerp(corPixel, Color.white, 0.4f);
+                        // Desenha símbolo de moeda simplificado
+                        Vector2 pos = new Vector2(x, y) - centro;
+                        if (Mathf.Abs(pos.x) < 3f && Mathf.Abs(pos.y) < 8f)
+                        {
+                            corPixel = Color.Lerp(corPixel, ouroEscuro, 0.4f);
+                        }
+                    }
+
+                    // Brilho no canto superior esquerdo
+                    Vector2 brilhoPos = new Vector2(x, y) - (centro + new Vector2(-6, 6));
+                    float distBrilho = brilhoPos.magnitude;
+                    if (distBrilho < 8f && distancia < raioExterno * 0.8f)
+                    {
+                        float intensidade = 1f - (distBrilho / 8f);
+                        corPixel = Color.Lerp(corPixel, brilho, intensidade * 0.6f);
+                    }
+
+                    // Borda anti-aliasing
+                    if (distancia > raioExterno - 1.5f)
+                    {
+                        float alpha = 1f - (distancia - (raioExterno - 1.5f)) / 1.5f;
+                        corPixel.a = alpha;
                     }
                 }
 
@@ -307,50 +338,86 @@ public class Coletavel : MonoBehaviour
             }
         }
 
+        textura.filterMode = FilterMode.Bilinear;
         textura.Apply();
         return Sprite.Create(textura, new Rect(0, 0, tamanho, tamanho), new Vector2(0.5f, 0.5f));
     }
 
     private Sprite CriarSpritePowerUp()
     {
-        int tamanho = 32;
+        int tamanho = 48;
         Texture2D textura = new Texture2D(tamanho, tamanho, TextureFormat.RGBA32, false);
 
         Vector2 centro = new Vector2(tamanho / 2f, tamanho / 2f);
+        float raio = tamanho / 2f - 4f;
+
+        // Cores vibrantes para power-up
+        Color corExterna, corMedia, corInterna, corBrilho;
+        
+        switch (tipoPowerUp)
+        {
+            case TipoPowerUp.Velocidade:
+                corExterna = new Color(0.0f, 0.4f, 0.9f, 1f);   // Azul
+                corMedia = new Color(0.2f, 0.6f, 1f, 1f);
+                corInterna = new Color(0.5f, 0.85f, 1f, 1f);
+                corBrilho = new Color(0.8f, 0.95f, 1f, 1f);
+                break;
+            case TipoPowerUp.PontuacaoDupla:
+                corExterna = new Color(0.6f, 0.0f, 0.8f, 1f);   // Roxo
+                corMedia = new Color(0.75f, 0.3f, 1f, 1f);
+                corInterna = new Color(0.9f, 0.6f, 1f, 1f);
+                corBrilho = new Color(1f, 0.85f, 1f, 1f);
+                break;
+            case TipoPowerUp.Invencibilidade:
+            default:
+                corExterna = new Color(0.9f, 0.6f, 0f, 1f);     // Dourado
+                corMedia = new Color(1f, 0.8f, 0.2f, 1f);
+                corInterna = new Color(1f, 0.95f, 0.5f, 1f);
+                corBrilho = new Color(1f, 1f, 0.9f, 1f);
+                break;
+        }
 
         for (int x = 0; x < tamanho; x++)
         {
             for (int y = 0; y < tamanho; y++)
             {
                 Vector2 pos = new Vector2(x, y) - centro;
+                float distancia = pos.magnitude;
                 Color corPixel = Color.clear;
 
-                bool naEstrela = false;
+                // Forma de estrela de 6 pontas
+                float angulo = Mathf.Atan2(pos.y, pos.x);
+                float raioEstrela = raio * (0.6f + 0.4f * Mathf.Abs(Mathf.Cos(angulo * 3f)));
 
-                // Forma de cruz/estrela
-                if (Mathf.Abs(pos.y) <= 3f && Mathf.Abs(pos.x) <= 11f)
-                    naEstrela = true;
-
-                if (Mathf.Abs(pos.x) <= 3f && Mathf.Abs(pos.y) <= 11f)
-                    naEstrela = true;
-
-                if (naEstrela)
+                if (distancia <= raioEstrela)
                 {
-                    float distancia = Vector2.Distance(Vector2.zero, pos);
+                    // Gradiente do centro para fora
+                    float t = distancia / raioEstrela;
 
-                    if (distancia < 6f)
+                    if (t < 0.3f)
                     {
-                        corPixel = new Color(0.4f, 1f, 0.6f, 1f);
+                        corPixel = Color.Lerp(corBrilho, corInterna, t / 0.3f);
+                    }
+                    else if (t < 0.7f)
+                    {
+                        corPixel = Color.Lerp(corInterna, corMedia, (t - 0.3f) / 0.4f);
                     }
                     else
                     {
-                        corPixel = new Color(0.2f, 0.8f, 0.4f, 1f);
+                        corPixel = Color.Lerp(corMedia, corExterna, (t - 0.7f) / 0.3f);
                     }
 
-                    // Centro brilhante
-                    if (distancia < 3f)
+                    // Efeito de brilho central
+                    if (distancia < 5f)
                     {
-                        corPixel = Color.Lerp(corPixel, Color.white, 0.5f);
+                        corPixel = Color.Lerp(corPixel, Color.white, 0.5f * (1f - distancia / 5f));
+                    }
+
+                    // Anti-aliasing na borda
+                    if (distancia > raioEstrela - 1.5f)
+                    {
+                        float alpha = 1f - (distancia - (raioEstrela - 1.5f)) / 1.5f;
+                        corPixel.a = alpha;
                     }
                 }
 
@@ -358,12 +425,16 @@ public class Coletavel : MonoBehaviour
             }
         }
 
+        textura.filterMode = FilterMode.Bilinear;
         textura.Apply();
         return Sprite.Create(textura, new Rect(0, 0, tamanho, tamanho), new Vector2(0.5f, 0.5f));
     }
     #endregion
 }
 
+/// <summary>
+/// Enum de compatibilidade com código legado
+/// </summary>
 public enum CollectibleType
 {
     Coin,
@@ -371,4 +442,3 @@ public enum CollectibleType
     PowerUp,
     Key
 }
-public class Collectible : Coletavel { }

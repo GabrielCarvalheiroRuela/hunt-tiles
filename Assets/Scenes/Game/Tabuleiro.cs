@@ -28,16 +28,18 @@ public class Tabuleiro : MonoBehaviour
     #endregion
 
     #region Configurações Visuais
-    [Header("Cores de Madeira")]
-    [SerializeField] private Color corMadeiraClara = new Color(0.76f, 0.60f, 0.42f, 1f);   // Carvalho claro
-    [SerializeField] private Color corMadeiraEscura = new Color(0.55f, 0.38f, 0.22f, 1f);  // Nogueira
-    [SerializeField] private Color corMadeiraBorda = new Color(0.35f, 0.22f, 0.12f, 1f);   // Mogno escuro
-    [SerializeField] private Color corDestaque = new Color(0.95f, 0.85f, 0.55f, 0.9f);     // Dourado suave
-    [SerializeField] private Color corPersonagem = new Color(0f, 0f, 0f, 0f);              // Transparente (sem cor)
+    [Header("Cores Premium")]
+    [SerializeField] private Color corMadeiraClara = new Color(0.82f, 0.68f, 0.52f, 1f);   // Maple claro
+    [SerializeField] private Color corMadeiraEscura = new Color(0.58f, 0.42f, 0.28f, 1f);  // Nogueira rica
+    [SerializeField] private Color corMadeiraBorda = new Color(0.28f, 0.18f, 0.10f, 1f);   // Ébano
+    [SerializeField] private Color corDestaque = new Color(1f, 0.92f, 0.65f, 0.95f);       // Ouro suave
+    [SerializeField] private Color corPersonagem = new Color(0f, 0f, 0f, 0f);              // Transparente
     
-    [Header("Detalhes Visuais")]
-    [SerializeField] private float intensidadeVeio = 0.08f;     // Intensidade do veio da madeira
-    [SerializeField] private float arredondamentoBorda = 3f;    // Arredondamento visual
+    [Header("Detalhes Premium")]
+    [SerializeField] private float intensidadeVeio = 0.06f;     // Veio sutil da madeira
+    [SerializeField] private float arredondamentoBorda = 4f;    // Arredondamento elegante
+    [SerializeField] private bool usarSombrasCelulas = true;    // Sombras nas células
+    [SerializeField] private bool usarBrilhoRealista = true;    // Brilho 3D nas células
     #endregion
 
     #region Dados Internos
@@ -142,49 +144,89 @@ public class Tabuleiro : MonoBehaviour
 
     private void CriarFundo(float larguraTotal, float alturaTotal)
     {
-        // Moldura externa (mais escura)
+        // === SOMBRA EXTERNA PROFUNDA ===
+        GameObject sombraExternaObj = new GameObject("SombraExterna");
+        sombraExternaObj.transform.SetParent(painelGrid);
+        
+        Image imagemSombraExterna = sombraExternaObj.AddComponent<Image>();
+        imagemSombraExterna.color = new Color(0f, 0f, 0f, 0.4f);
+        
+        RectTransform sombraExternaRect = sombraExternaObj.GetComponent<RectTransform>();
+        sombraExternaRect.anchorMin = Vector2.one * 0.5f;
+        sombraExternaRect.anchorMax = Vector2.one * 0.5f;
+        sombraExternaRect.sizeDelta = new Vector2(larguraTotal + 50f, alturaTotal + 50f);
+        sombraExternaRect.anchoredPosition = new Vector2(8f, -8f);
+        
+        sombraExternaObj.transform.SetAsFirstSibling();
+
+        // === MOLDURA EXTERNA PREMIUM ===
         GameObject molduraObj = new GameObject("MolduraTabuleiro");
         molduraObj.transform.SetParent(painelGrid);
         
         Image imagemMoldura = molduraObj.AddComponent<Image>();
-        imagemMoldura.color = new Color(0.25f, 0.15f, 0.08f, 1f); // Madeira escura
+        imagemMoldura.color = new Color(0.18f, 0.12f, 0.07f, 1f); // Ébano profundo
         
         RectTransform molduraRect = molduraObj.GetComponent<RectTransform>();
         molduraRect.anchorMin = Vector2.one * 0.5f;
         molduraRect.anchorMax = Vector2.one * 0.5f;
-        molduraRect.sizeDelta = new Vector2(larguraTotal + 30f, alturaTotal + 30f);
+        molduraRect.sizeDelta = new Vector2(larguraTotal + 36f, alturaTotal + 36f);
         molduraRect.anchoredPosition = Vector2.zero;
         
-        // Contorno da moldura
+        // Contorno dourado da moldura
         Outline contornoMoldura = molduraObj.AddComponent<Outline>();
-        contornoMoldura.effectColor = new Color(0.15f, 0.08f, 0.04f, 1f);
-        contornoMoldura.effectDistance = new Vector2(4f, 4f);
+        contornoMoldura.effectColor = new Color(0.75f, 0.6f, 0.3f, 0.8f);
+        contornoMoldura.effectDistance = new Vector2(2f, 2f);
         
-        // Sombra profunda da moldura
+        // Sombra interna da moldura
         Shadow sombraMoldura = molduraObj.AddComponent<Shadow>();
-        sombraMoldura.effectColor = new Color(0f, 0f, 0f, 0.6f);
-        sombraMoldura.effectDistance = new Vector2(5f, -5f);
+        sombraMoldura.effectColor = new Color(0f, 0f, 0f, 0.7f);
+        sombraMoldura.effectDistance = new Vector2(6f, -6f);
         
-        molduraObj.transform.SetAsFirstSibling();
+        molduraObj.transform.SetSiblingIndex(1);
         
-        // Fundo interno (tom médio)
+        // === DETALHE INTERNO DA MOLDURA ===
+        GameObject detalheObj = new GameObject("DetalheMoldura");
+        detalheObj.transform.SetParent(painelGrid);
+        
+        Image imagemDetalhe = detalheObj.AddComponent<Image>();
+        imagemDetalhe.color = new Color(0.35f, 0.25f, 0.15f, 1f);
+        
+        RectTransform detalheRect = detalheObj.GetComponent<RectTransform>();
+        detalheRect.anchorMin = Vector2.one * 0.5f;
+        detalheRect.anchorMax = Vector2.one * 0.5f;
+        detalheRect.sizeDelta = new Vector2(larguraTotal + 24f, alturaTotal + 24f);
+        detalheRect.anchoredPosition = Vector2.zero;
+        
+        Outline brilhoDetalhe = detalheObj.AddComponent<Outline>();
+        brilhoDetalhe.effectColor = new Color(0.5f, 0.4f, 0.25f, 0.6f);
+        brilhoDetalhe.effectDistance = new Vector2(-1f, 1f);
+        
+        detalheObj.transform.SetSiblingIndex(2);
+        
+        // === FUNDO INTERNO (FELTRO) ===
         GameObject fundoObj = new GameObject("FundoTabuleiro");
         fundoObj.transform.SetParent(painelGrid);
 
         Image imagemFundo = fundoObj.AddComponent<Image>();
-        imagemFundo.color = new Color(0.35f, 0.22f, 0.12f, 1f); // Madeira média
+        imagemFundo.color = new Color(0.22f, 0.16f, 0.10f, 1f); // Tom escuro elegante
 
         RectTransform fundoRect = fundoObj.GetComponent<RectTransform>();
         fundoRect.anchorMin = Vector2.one * 0.5f;
         fundoRect.anchorMax = Vector2.one * 0.5f;
-        fundoRect.sizeDelta = new Vector2(larguraTotal + 12f, alturaTotal + 12f);
+        fundoRect.sizeDelta = new Vector2(larguraTotal + 8f, alturaTotal + 8f);
+        fundoRect.anchoredPosition = Vector2.zero;
         
         // Brilho interno sutil
         Outline brilhoInterno = fundoObj.AddComponent<Outline>();
-        brilhoInterno.effectColor = new Color(0.5f, 0.35f, 0.2f, 0.5f);
-        brilhoInterno.effectDistance = new Vector2(2f, 2f);
+        brilhoInterno.effectColor = new Color(0.4f, 0.3f, 0.2f, 0.4f);
+        brilhoInterno.effectDistance = new Vector2(1f, 1f);
         
-        fundoObj.transform.SetSiblingIndex(1);
+        // Sombra interna para profundidade
+        Shadow sombraInterna = fundoObj.AddComponent<Shadow>();
+        sombraInterna.effectColor = new Color(0f, 0f, 0f, 0.3f);
+        sombraInterna.effectDistance = new Vector2(2f, -2f);
+        
+        fundoObj.transform.SetSiblingIndex(3);
     }
 
     private void CriarCelula(int x, int y, Vector2 posicao)
@@ -200,35 +242,44 @@ public class Tabuleiro : MonoBehaviour
             celulaObj = new GameObject($"Celula_{x}_{y}");
             celulaObj.transform.SetParent(painelGrid);
 
-            // Cor base da célula com variação natural de madeira
+            // === COR BASE COM VARIAÇÃO PREMIUM DE MADEIRA ===
             Image imagem = celulaObj.AddComponent<Image>();
             Color corBase = ((x + y) % 2 == 0) ? corMadeiraClara : corMadeiraEscura;
             
-            // Adicionar variação sutil para simular veios da madeira
-            float variacaoX = Mathf.PerlinNoise(x * 0.5f, y * 0.3f) * intensidadeVeio;
-            float variacaoY = Mathf.PerlinNoise(x * 0.3f + 100f, y * 0.5f) * intensidadeVeio;
+            // Variação de veio mais natural usando múltiplas camadas de Perlin noise
+            float veio1 = Mathf.PerlinNoise(x * 0.4f, y * 0.25f) * intensidadeVeio;
+            float veio2 = Mathf.PerlinNoise(x * 0.2f + 50f, y * 0.4f) * intensidadeVeio * 0.5f;
+            float veio3 = Mathf.PerlinNoise(x * 0.7f + 100f, y * 0.15f) * intensidadeVeio * 0.3f;
+            float variacaoTotal = veio1 + veio2 - veio3;
+            
             corBase = new Color(
-                Mathf.Clamp01(corBase.r + variacaoX - variacaoY * 0.5f),
-                Mathf.Clamp01(corBase.g + variacaoX * 0.7f - variacaoY * 0.3f),
-                Mathf.Clamp01(corBase.b + variacaoX * 0.3f),
+                Mathf.Clamp01(corBase.r + variacaoTotal),
+                Mathf.Clamp01(corBase.g + variacaoTotal * 0.85f),
+                Mathf.Clamp01(corBase.b + variacaoTotal * 0.5f),
                 corBase.a
             );
             imagem.color = corBase;
 
-            // Borda interna elegante (brilho)
-            Outline brilho = celulaObj.AddComponent<Outline>();
-            Color corBrilho = ((x + y) % 2 == 0) 
-                ? new Color(0.9f, 0.75f, 0.55f, 0.4f)  // Brilho claro
-                : new Color(0.7f, 0.5f, 0.3f, 0.3f);   // Brilho médio
-            brilho.effectColor = corBrilho;
-            brilho.effectDistance = new Vector2(-1f, 1f); // Brilho no topo-esquerda
+            if (usarBrilhoRealista)
+            {
+                // === BRILHO 3D NO TOPO-ESQUERDA ===
+                Outline brilho = celulaObj.AddComponent<Outline>();
+                Color corBrilho = ((x + y) % 2 == 0) 
+                    ? new Color(1f, 0.92f, 0.75f, 0.35f)  // Brilho dourado suave
+                    : new Color(0.8f, 0.65f, 0.45f, 0.28f);   // Brilho cobre
+                brilho.effectColor = corBrilho;
+                brilho.effectDistance = new Vector2(-1.5f, 1.5f);
+            }
 
-            // Sombra sutil para profundidade
-            Shadow sombra = celulaObj.AddComponent<Shadow>();
-            sombra.effectColor = new Color(0.15f, 0.08f, 0.04f, 0.5f);
-            sombra.effectDistance = new Vector2(1.5f, -1.5f);
+            if (usarSombrasCelulas)
+            {
+                // === SOMBRA 3D NO CANTO INFERIOR-DIREITA ===
+                Shadow sombra = celulaObj.AddComponent<Shadow>();
+                sombra.effectColor = new Color(0.1f, 0.06f, 0.03f, 0.45f);
+                sombra.effectDistance = new Vector2(2f, -2f);
+            }
             
-            // Segunda sombra para borda mais definida
+            // === BORDA INTERNA ELEGANTE ===
             GameObject bordaInternaObj = new GameObject("BordaInterna");
             bordaInternaObj.transform.SetParent(celulaObj.transform);
             Image bordaInterna = bordaInternaObj.AddComponent<Image>();
@@ -237,12 +288,13 @@ public class Tabuleiro : MonoBehaviour
             RectTransform bordaRect = bordaInternaObj.GetComponent<RectTransform>();
             bordaRect.anchorMin = Vector2.zero;
             bordaRect.anchorMax = Vector2.one;
-            bordaRect.offsetMin = Vector2.one * 2f;
-            bordaRect.offsetMax = Vector2.one * -2f;
+            bordaRect.offsetMin = Vector2.one * 1.5f;
+            bordaRect.offsetMax = Vector2.one * -1.5f;
             
+            // Contorno fino e elegante
             Outline contornoBorda = bordaInternaObj.AddComponent<Outline>();
-            contornoBorda.effectColor = corMadeiraBorda;
-            contornoBorda.effectDistance = new Vector2(1f, 1f);
+            contornoBorda.effectColor = new Color(corMadeiraBorda.r, corMadeiraBorda.g, corMadeiraBorda.b, 0.6f);
+            contornoBorda.effectDistance = new Vector2(0.8f, 0.8f);
         }
 
         RectTransform celulaRect = celulaObj.GetComponent<RectTransform>();
