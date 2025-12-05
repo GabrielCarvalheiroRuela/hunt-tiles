@@ -324,7 +324,7 @@ Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 <div align="center">
 
-Desenvolvido com ❤️ para a disciplina de **Desenvolvimento de Jogos**
+Desenvolvido com ❤️ para fins academicos
 
 *"Um desafio estratégico em cada nível"*
 
