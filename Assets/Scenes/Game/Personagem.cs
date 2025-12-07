@@ -85,6 +85,7 @@ public class Personagem : MonoBehaviour
     void Update()
     {
         ProcessarEntradaTeclado();
+        ProcessarEntradaTecladoContinuo();
     }
 
     void OnDestroy()
@@ -255,6 +256,14 @@ public class Personagem : MonoBehaviour
     #endregion
 
     #region Entrada do Jogador
+
+    // Movimento contínuo
+    private float tempoSegurando = 0f;
+    private float delayInicial = 0.1f;   // tempo antes de começar a repetir
+    private float intervaloRepeticao = 0.08f; // intervalo entre movimentos
+    private bool teclaSegurada = false;
+    private Vector2Int direcaoSegurada;
+
     private void ProcessarEntradaTeclado()
     {
         if (!usarTeclado || estaMovendo) return;
@@ -300,6 +309,87 @@ public class Personagem : MonoBehaviour
             Debug.Log($"Movimento muito distante! Distância: ({deltaX}, {deltaY})");
         }
     }
+
+    private void ProcessarEntradaTecladoContinuo()
+    {
+        if (!usarTeclado) return;
+
+        var teclado = Keyboard.current;
+        if (teclado == null) return;
+
+        // Detectar direção atual considerando teclas pressionadas
+        Vector2Int novaDirecao = Vector2Int.zero;
+
+        if (teclado.wKey.isPressed || teclado.upArrowKey.isPressed)
+            novaDirecao = new Vector2Int(0, -1);
+        if (teclado.sKey.isPressed || teclado.downArrowKey.isPressed)
+            novaDirecao = new Vector2Int(0, 1);
+        if (teclado.aKey.isPressed || teclado.leftArrowKey.isPressed)
+            novaDirecao = new Vector2Int(-1, 0);
+        if (teclado.dKey.isPressed || teclado.rightArrowKey.isPressed)
+            novaDirecao = new Vector2Int(1, 0);
+
+        // Se nenhuma tecla está pressionada
+        if (novaDirecao == Vector2Int.zero)
+        {
+            teclaSegurada = false;
+            tempoSegurando = 0f;
+            return;
+        }
+
+        // Se mudou de direção -> reinicia o timer e anda imediatamente
+        if (novaDirecao != direcaoSegurada)
+        {
+            direcaoSegurada = novaDirecao;
+            tempoSegurando = 0f;
+            teclaSegurada = true;
+
+            if (!estaMovendo)
+            {
+                int alvoX = posicaoX + direcaoSegurada.x;
+                int alvoY = posicaoY + direcaoSegurada.y;
+                MoverPara(alvoX, alvoY);
+            }
+
+            return;
+        }
+
+        // Mantendo pressionada a mesma direção
+        teclaSegurada = true;
+        tempoSegurando += Time.deltaTime;
+
+        // Após delay inicial, repetir movimento
+        if (tempoSegurando >= delayInicial)
+        {
+            if (tempoSegurando >= delayInicial + intervaloRepeticao)
+            {
+                tempoSegurando = delayInicial;
+
+                if (!estaMovendo)
+                {
+                    int alvoX = posicaoX + direcaoSegurada.x;
+                    int alvoY = posicaoY + direcaoSegurada.y;
+                    MoverPara(alvoX, alvoY);
+                }
+            }
+        }
+    }
+
+    private void IniciarSegurarTecla(Vector2Int direcao)
+    {
+        if (!teclaSegurada)
+        {
+            teclaSegurada = true;
+            tempoSegurando = 0f;
+            direcaoSegurada = direcao;
+
+            // Move uma vez imediatamente
+            int alvoX = posicaoX + direcao.x;
+            int alvoY = posicaoY + direcao.y;
+            MoverPara(alvoX, alvoY);
+        }
+    }
+
     #endregion
 
     #region Movimento
