@@ -52,7 +52,7 @@ public class InterfaceJogo : MonoBehaviour
     [SerializeField] private Color corBordaInterna = new Color(0.5f, 0.4f, 0.25f, 0.7f);       // Madeira clara
     [SerializeField] private Color corMadeiraClara = new Color(0.82f, 0.68f, 0.52f, 1f);       // Maple claro
     [SerializeField] private Color corMadeiraEscura = new Color(0.58f, 0.42f, 0.28f, 1f);      // Nogueira
-    
+
     // Compatibilidade
     private Color corFundo => corFundoPrincipal;
     private Color corBorda => corBordaDourada;
@@ -142,7 +142,7 @@ public class InterfaceJogo : MonoBehaviour
 
         CriarElementosUI();
         layoutCalculado = true;
-        
+
         Debug.Log("✓ InterfaceJogo responsiva inicializada!");
     }
 
@@ -156,7 +156,7 @@ public class InterfaceJogo : MonoBehaviour
         CriarAreaMensagens(canvas.transform);
         CriarPainelVitoria(canvas.transform);
         CriarPainelPausa(canvas.transform);
-        
+
         AjustarLayoutResponsivo();
     }
 
@@ -194,9 +194,9 @@ public class InterfaceJogo : MonoBehaviour
         {
             Vector2 localPoint;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                canvasRect, 
-                RectTransformUtility.WorldToScreenPoint(null, tabuleiroCorners[i]), 
-                null, 
+                canvasRect,
+                RectTransformUtility.WorldToScreenPoint(null, tabuleiroCorners[i]),
+                null,
                 out localPoint
             );
 
@@ -221,7 +221,7 @@ public class InterfaceJogo : MonoBehaviour
         // Posicionar HUD à direita do tabuleiro
         RectTransform hudRect = painelHUD.GetComponent<RectTransform>();
         PosicionarAoLadoDoTabuleiro(hudRect, tabuleiroDireita, tabuleiroCentroY, tabuleiroAltura, true);
-        
+
         // Posicionar Tutorial à esquerda do tabuleiro
         if (painelTutorial != null)
         {
@@ -237,7 +237,7 @@ public class InterfaceJogo : MonoBehaviour
 
         rect.anchorMin = new Vector2(0.5f, 0.5f);
         rect.anchorMax = new Vector2(0.5f, 0.5f);
-        
+
         if (ladoDireito)
         {
             rect.pivot = new Vector2(0f, 0.5f);
@@ -248,7 +248,7 @@ public class InterfaceJogo : MonoBehaviour
             rect.pivot = new Vector2(1f, 0.5f);
             rect.anchoredPosition = new Vector2(tabuleiroX - margem, tabuleiroCentroY);
         }
-        
+
         rect.sizeDelta = new Vector2(largura, tabuleiroAltura);
     }
 
@@ -314,7 +314,7 @@ public class InterfaceJogo : MonoBehaviour
         Outline bordaExterna = painel.AddComponent<Outline>();
         bordaExterna.effectColor = new Color(0.75f, 0.6f, 0.3f, 0.8f);
         bordaExterna.effectDistance = new Vector2(2f, 2f);
-        
+
         // Sombra profunda
         Shadow sombraPainel = painel.AddComponent<Shadow>();
         sombraPainel.effectColor = new Color(0f, 0f, 0f, 0.7f);
@@ -325,16 +325,16 @@ public class InterfaceJogo : MonoBehaviour
         // === BORDA INTERNA DECORATIVA ===
         GameObject bordaInterna = new GameObject("BordaInterna");
         bordaInterna.transform.SetParent(painel.transform, false);
-        
+
         RectTransform rtBorda = bordaInterna.AddComponent<RectTransform>();
         rtBorda.anchorMin = Vector2.zero;
         rtBorda.anchorMax = Vector2.one;
         rtBorda.offsetMin = new Vector2(2f, 2f);
         rtBorda.offsetMax = new Vector2(-2f, -2f);
-        
+
         Image imgBorda = bordaInterna.AddComponent<Image>();
         imgBorda.color = new Color(0.35f, 0.25f, 0.15f, 1f); // Madeira média
-        
+
         Outline contornoBorda = bordaInterna.AddComponent<Outline>();
         contornoBorda.effectColor = new Color(0.5f, 0.4f, 0.25f, 0.6f);
         contornoBorda.effectDistance = new Vector2(-1f, 1f); // Brilho no topo
@@ -342,7 +342,7 @@ public class InterfaceJogo : MonoBehaviour
         // === CONTAINER DE CONTEÚDO ===
         GameObject conteudo = new GameObject("Conteudo");
         conteudo.transform.SetParent(painel.transform, false);
-        
+
         RectTransform rtConteudo = conteudo.AddComponent<RectTransform>();
         rtConteudo.anchorMin = Vector2.zero;
         rtConteudo.anchorMax = Vector2.one;
@@ -387,7 +387,7 @@ public class InterfaceJogo : MonoBehaviour
         Outline bordaExterna = painel.AddComponent<Outline>();
         bordaExterna.effectColor = new Color(0.75f, 0.6f, 0.3f, 0.8f);
         bordaExterna.effectDistance = new Vector2(2f, 2f);
-        
+
         Shadow sombraPainel = painel.AddComponent<Shadow>();
         sombraPainel.effectColor = new Color(0f, 0f, 0f, 0.7f);
         sombraPainel.effectDistance = new Vector2(-6f, -6f);
@@ -396,23 +396,23 @@ public class InterfaceJogo : MonoBehaviour
 
         GameObject bordaInterna = new GameObject("BordaInterna");
         bordaInterna.transform.SetParent(painel.transform, false);
-        
+
         RectTransform rtBorda = bordaInterna.AddComponent<RectTransform>();
         rtBorda.anchorMin = Vector2.zero;
         rtBorda.anchorMax = Vector2.one;
         rtBorda.offsetMin = new Vector2(2f, 2f);
         rtBorda.offsetMax = new Vector2(-2f, -2f);
-        
+
         Image imgBorda = bordaInterna.AddComponent<Image>();
         imgBorda.color = new Color(0.35f, 0.25f, 0.15f, 1f);
-        
+
         Outline contornoBorda = bordaInterna.AddComponent<Outline>();
         contornoBorda.effectColor = new Color(0.5f, 0.4f, 0.25f, 0.6f);
         contornoBorda.effectDistance = new Vector2(-1f, 1f);
 
         GameObject conteudo = new GameObject("Conteudo");
         conteudo.transform.SetParent(painel.transform, false);
-        
+
         RectTransform rtConteudo = conteudo.AddComponent<RectTransform>();
         rtConteudo.anchorMin = Vector2.zero;
         rtConteudo.anchorMax = Vector2.one;
@@ -439,23 +439,23 @@ public class InterfaceJogo : MonoBehaviour
     {
         GameObject titulo = new GameObject("TituloTutorial");
         titulo.transform.SetParent(parent, false);
-        
+
         LayoutElement le = titulo.AddComponent<LayoutElement>();
         le.preferredHeight = 24f;
         le.flexibleWidth = 1f;
-        
+
         Image fundoTitulo = titulo.AddComponent<Image>();
         fundoTitulo.color = new Color(0.45f, 0.32f, 0.2f, 0.6f);
-        
+
         GameObject textoObj = new GameObject("Texto");
         textoObj.transform.SetParent(titulo.transform, false);
-        
+
         RectTransform rtTexto = textoObj.AddComponent<RectTransform>();
         rtTexto.anchorMin = Vector2.zero;
         rtTexto.anchorMax = Vector2.one;
         rtTexto.offsetMin = Vector2.zero;
         rtTexto.offsetMax = Vector2.zero;
-        
+
         Text textoTitulo = textoObj.AddComponent<Text>();
         textoTitulo.text = "📖 TUTORIAL";
         textoTitulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -463,7 +463,7 @@ public class InterfaceJogo : MonoBehaviour
         textoTitulo.fontStyle = FontStyle.Bold;
         textoTitulo.color = new Color(1f, 0.9f, 0.65f);
         textoTitulo.alignment = TextAnchor.MiddleCenter;
-        
+
         Outline brilho = textoObj.AddComponent<Outline>();
         brilho.effectColor = new Color(0.15f, 0.1f, 0.05f, 0.9f);
         brilho.effectDistance = new Vector2(1f, 1f);
@@ -473,24 +473,24 @@ public class InterfaceJogo : MonoBehaviour
     {
         GameObject secao = new GameObject("SecaoObjetivo");
         secao.transform.SetParent(parent, false);
-        
+
         LayoutElement le = secao.AddComponent<LayoutElement>();
-        le.preferredHeight = 50f;
+        le.preferredHeight = 65f;
         le.flexibleWidth = 1f;
-        
+
         Image fundo = secao.AddComponent<Image>();
         fundo.color = new Color(0.38f, 0.26f, 0.16f, 0.5f);
-        
+
         // Título da seção
         GameObject tituloObj = new GameObject("Titulo");
         tituloObj.transform.SetParent(secao.transform, false);
-        
+
         RectTransform rtTitulo = tituloObj.AddComponent<RectTransform>();
-        rtTitulo.anchorMin = new Vector2(0f, 0.7f);
+        rtTitulo.anchorMin = new Vector2(0f, 0.75f);
         rtTitulo.anchorMax = new Vector2(1f, 1f);
         rtTitulo.offsetMin = new Vector2(4f, 0f);
         rtTitulo.offsetMax = new Vector2(-4f, 0f);
-        
+
         Text textoTitulo = tituloObj.AddComponent<Text>();
         textoTitulo.text = "🎯 OBJETIVO";
         textoTitulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -498,21 +498,34 @@ public class InterfaceJogo : MonoBehaviour
         textoTitulo.fontStyle = FontStyle.Bold;
         textoTitulo.color = new Color(1f, 0.85f, 0.4f);
         textoTitulo.alignment = TextAnchor.MiddleLeft;
-        
+
         // Conteúdo
         GameObject conteudoObj = new GameObject("Conteudo");
         conteudoObj.transform.SetParent(secao.transform, false);
-        
+
         RectTransform rtConteudo = conteudoObj.AddComponent<RectTransform>();
         rtConteudo.anchorMin = new Vector2(0f, 0f);
-        rtConteudo.anchorMax = new Vector2(1f, 0.7f);
+        rtConteudo.anchorMax = new Vector2(1f, 0.75f);
         rtConteudo.offsetMin = new Vector2(4f, 2f);
         rtConteudo.offsetMax = new Vector2(-4f, 0f);
-        
+
         Text textoConteudo = conteudoObj.AddComponent<Text>();
-        textoConteudo.text = "Colete todas as\nmoedas 🪙 para\nvencer!";
+
+        // Obter nível máximo do gerenciador
+        if (gerenciador != null)
+        {
+            var campoNivelMaximo = gerenciador.GetType().GetField("nivelMaximo",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            if (campoNivelMaximo != null)
+            {
+                nivelMax = (int)campoNivelMaximo.GetValue(gerenciador);
+            }
+        }
+
+        textoConteudo.text = $"Colete todas as\nmoedas 🪙 para\npassar de nível e\nalcance o nível\n{nivelMax} para vencer!";
         textoConteudo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        textoConteudo.fontSize = 14;
+        textoConteudo.fontSize = 13;
         textoConteudo.color = new Color(0.9f, 0.85f, 0.75f);
         textoConteudo.alignment = TextAnchor.UpperLeft;
     }
@@ -521,24 +534,24 @@ public class InterfaceJogo : MonoBehaviour
     {
         GameObject secao = new GameObject("SecaoControles");
         secao.transform.SetParent(parent, false);
-        
+
         LayoutElement le = secao.AddComponent<LayoutElement>();
         le.preferredHeight = 60f;
         le.flexibleWidth = 1f;
-        
+
         Image fundo = secao.AddComponent<Image>();
         fundo.color = new Color(0.38f, 0.26f, 0.16f, 0.5f);
-        
+
         // Título
         GameObject tituloObj = new GameObject("Titulo");
         tituloObj.transform.SetParent(secao.transform, false);
-        
+
         RectTransform rtTitulo = tituloObj.AddComponent<RectTransform>();
         rtTitulo.anchorMin = new Vector2(0f, 0.75f);
         rtTitulo.anchorMax = new Vector2(1f, 1f);
         rtTitulo.offsetMin = new Vector2(4f, 0f);
         rtTitulo.offsetMax = new Vector2(-4f, 0f);
-        
+
         Text textoTitulo = tituloObj.AddComponent<Text>();
         textoTitulo.text = "🎮 CONTROLES";
         textoTitulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -546,17 +559,17 @@ public class InterfaceJogo : MonoBehaviour
         textoTitulo.fontStyle = FontStyle.Bold;
         textoTitulo.color = new Color(0.6f, 0.9f, 1f);
         textoTitulo.alignment = TextAnchor.MiddleLeft;
-        
+
         // Conteúdo
         GameObject conteudoObj = new GameObject("Conteudo");
         conteudoObj.transform.SetParent(secao.transform, false);
-        
+
         RectTransform rtConteudo = conteudoObj.AddComponent<RectTransform>();
         rtConteudo.anchorMin = new Vector2(0f, 0f);
         rtConteudo.anchorMax = new Vector2(1f, 0.75f);
         rtConteudo.offsetMin = new Vector2(4f, 2f);
         rtConteudo.offsetMax = new Vector2(-4f, 0f);
-        
+
         Text textoConteudo = conteudoObj.AddComponent<Text>();
         textoConteudo.text = "⬆️ W ou ↑\n⬇️ S ou ↓\n⬅️ A ou ←\n➡️ D ou →";
         textoConteudo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -569,24 +582,24 @@ public class InterfaceJogo : MonoBehaviour
     {
         GameObject secao = new GameObject("SecaoItens");
         secao.transform.SetParent(parent, false);
-        
+
         LayoutElement le = secao.AddComponent<LayoutElement>();
         le.preferredHeight = 70f;
         le.flexibleWidth = 1f;
-        
+
         Image fundo = secao.AddComponent<Image>();
         fundo.color = new Color(0.38f, 0.26f, 0.16f, 0.5f);
-        
+
         // Título
         GameObject tituloObj = new GameObject("Titulo");
         tituloObj.transform.SetParent(secao.transform, false);
-        
+
         RectTransform rtTitulo = tituloObj.AddComponent<RectTransform>();
         rtTitulo.anchorMin = new Vector2(0f, 0.82f);
         rtTitulo.anchorMax = new Vector2(1f, 1f);
         rtTitulo.offsetMin = new Vector2(4f, 0f);
         rtTitulo.offsetMax = new Vector2(-4f, 0f);
-        
+
         Text textoTitulo = tituloObj.AddComponent<Text>();
         textoTitulo.text = "✨ ITENS";
         textoTitulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -594,17 +607,17 @@ public class InterfaceJogo : MonoBehaviour
         textoTitulo.fontStyle = FontStyle.Bold;
         textoTitulo.color = new Color(0.85f, 0.65f, 1f);
         textoTitulo.alignment = TextAnchor.MiddleLeft;
-        
+
         // Conteúdo
         GameObject conteudoObj = new GameObject("Conteudo");
         conteudoObj.transform.SetParent(secao.transform, false);
-        
+
         RectTransform rtConteudo = conteudoObj.AddComponent<RectTransform>();
         rtConteudo.anchorMin = new Vector2(0f, 0f);
         rtConteudo.anchorMax = new Vector2(1f, 0.82f);
         rtConteudo.offsetMin = new Vector2(4f, 2f);
         rtConteudo.offsetMax = new Vector2(-4f, 0f);
-        
+
         Text textoConteudo = conteudoObj.AddComponent<Text>();
         textoConteudo.text = "🪙 Moeda = +10 pts\n⚡ Velocidade\n🛡️ Invencibilidade\n❌ Evite inimigos!";
         textoConteudo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -617,28 +630,28 @@ public class InterfaceJogo : MonoBehaviour
     {
         GameObject secao = new GameObject("SecaoDicas");
         secao.transform.SetParent(parent, false);
-        
+
         LayoutElement le = secao.AddComponent<LayoutElement>();
         le.preferredHeight = 45f;
         le.flexibleWidth = 1f;
-        
+
         Image fundo = secao.AddComponent<Image>();
         fundo.color = new Color(0.4f, 0.28f, 0.18f, 0.6f);
-        
+
         Outline borda = secao.AddComponent<Outline>();
         borda.effectColor = new Color(0.6f, 0.45f, 0.25f, 0.4f);
         borda.effectDistance = new Vector2(1f, 1f);
-        
+
         // Título
         GameObject tituloObj = new GameObject("Titulo");
         tituloObj.transform.SetParent(secao.transform, false);
-        
+
         RectTransform rtTitulo = tituloObj.AddComponent<RectTransform>();
         rtTitulo.anchorMin = new Vector2(0f, 0.65f);
         rtTitulo.anchorMax = new Vector2(1f, 1f);
         rtTitulo.offsetMin = new Vector2(4f, 0f);
         rtTitulo.offsetMax = new Vector2(-4f, 0f);
-        
+
         Text textoTitulo = tituloObj.AddComponent<Text>();
         textoTitulo.text = "💡 DICA";
         textoTitulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -646,17 +659,17 @@ public class InterfaceJogo : MonoBehaviour
         textoTitulo.fontStyle = FontStyle.Bold;
         textoTitulo.color = new Color(0.3f, 0.85f, 0.4f);
         textoTitulo.alignment = TextAnchor.MiddleLeft;
-        
+
         // Conteúdo
         GameObject conteudoObj = new GameObject("Conteudo");
         conteudoObj.transform.SetParent(secao.transform, false);
-        
+
         RectTransform rtConteudo = conteudoObj.AddComponent<RectTransform>();
         rtConteudo.anchorMin = new Vector2(0f, 0f);
         rtConteudo.anchorMax = new Vector2(1f, 0.65f);
         rtConteudo.offsetMin = new Vector2(4f, 2f);
         rtConteudo.offsetMax = new Vector2(-4f, 0f);
-        
+
         Text textoConteudo = conteudoObj.AddComponent<Text>();
         textoConteudo.text = "Inimigos ficam mais\nlentos quando longe!";
         textoConteudo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -670,25 +683,25 @@ public class InterfaceJogo : MonoBehaviour
     {
         GameObject titulo = new GameObject("TituloHUD");
         titulo.transform.SetParent(parent, false);
-        
+
         LayoutElement le = titulo.AddComponent<LayoutElement>();
         le.preferredHeight = 22f;
         le.flexibleWidth = 1f;
-        
+
         // Fundo sutil de madeira clara
         Image fundoTitulo = titulo.AddComponent<Image>();
         fundoTitulo.color = new Color(0.45f, 0.32f, 0.2f, 0.6f);
-        
+
         // Texto do título
         GameObject textoObj = new GameObject("Texto");
         textoObj.transform.SetParent(titulo.transform, false);
-        
+
         RectTransform rtTexto = textoObj.AddComponent<RectTransform>();
         rtTexto.anchorMin = Vector2.zero;
         rtTexto.anchorMax = Vector2.one;
         rtTexto.offsetMin = Vector2.zero;
         rtTexto.offsetMax = Vector2.zero;
-        
+
         Text textoTitulo = textoObj.AddComponent<Text>();
         textoTitulo.text = "◆ STATUS ◆";
         textoTitulo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -696,7 +709,7 @@ public class InterfaceJogo : MonoBehaviour
         textoTitulo.fontStyle = FontStyle.Bold;
         textoTitulo.color = new Color(1f, 0.9f, 0.65f); // Dourado claro
         textoTitulo.alignment = TextAnchor.MiddleCenter;
-        
+
         Outline brilho = textoObj.AddComponent<Outline>();
         brilho.effectColor = new Color(0.15f, 0.1f, 0.05f, 0.9f);
         brilho.effectDistance = new Vector2(1f, 1f);
@@ -714,7 +727,7 @@ public class InterfaceJogo : MonoBehaviour
         // Fundo de madeira com vermelho sutil
         Image fundoVidas = container.AddComponent<Image>();
         fundoVidas.color = new Color(0.4f, 0.22f, 0.15f, 0.7f);
-        
+
         Outline bordaVidas = container.AddComponent<Outline>();
         bordaVidas.effectColor = new Color(0.7f, 0.35f, 0.25f, 0.5f);
         bordaVidas.effectDistance = new Vector2(1f, 1f);
@@ -722,13 +735,13 @@ public class InterfaceJogo : MonoBehaviour
         // Label "VIDAS"
         GameObject labelObj = new GameObject("Label");
         labelObj.transform.SetParent(container.transform, false);
-        
+
         RectTransform rtLabel = labelObj.AddComponent<RectTransform>();
         rtLabel.anchorMin = new Vector2(0f, 0.5f);
         rtLabel.anchorMax = new Vector2(0.35f, 1f);
         rtLabel.offsetMin = new Vector2(6f, 0f);
         rtLabel.offsetMax = Vector2.zero;
-        
+
         Text labelTexto = labelObj.AddComponent<Text>();
         labelTexto.text = "VIDAS";
         labelTexto.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -766,17 +779,17 @@ public class InterfaceJogo : MonoBehaviour
         LayoutElement le = sep.AddComponent<LayoutElement>();
         le.preferredHeight = 4f;
         le.flexibleWidth = 1f;
-        
+
         // Linha central
         GameObject linhaCentral = new GameObject("LinhaCentral");
         linhaCentral.transform.SetParent(sep.transform, false);
-        
+
         RectTransform rtLinha = linhaCentral.AddComponent<RectTransform>();
         rtLinha.anchorMin = new Vector2(0.15f, 0.4f);
         rtLinha.anchorMax = new Vector2(0.85f, 0.6f);
         rtLinha.offsetMin = Vector2.zero;
         rtLinha.offsetMax = Vector2.zero;
-        
+
         Image linha = linhaCentral.AddComponent<Image>();
         linha.color = corBordaDourada * 0.5f;
     }
@@ -802,20 +815,20 @@ public class InterfaceJogo : MonoBehaviour
         LayoutElement le = sep.AddComponent<LayoutElement>();
         le.preferredHeight = 2f;
         le.flexibleWidth = 1f;
-        
+
         // Linha central com gradiente de madeira
         GameObject linhaCentral = new GameObject("LinhaCentral");
         linhaCentral.transform.SetParent(sep.transform, false);
-        
+
         RectTransform rtLinha = linhaCentral.AddComponent<RectTransform>();
         rtLinha.anchorMin = new Vector2(0.1f, 0.3f);
         rtLinha.anchorMax = new Vector2(0.9f, 0.7f);
         rtLinha.offsetMin = Vector2.zero;
         rtLinha.offsetMax = Vector2.zero;
-        
+
         Image linha = linhaCentral.AddComponent<Image>();
         linha.color = new Color(0.55f, 0.42f, 0.28f, 0.8f); // Nogueira
-        
+
         // Brilho superior (simula textura de madeira)
         Outline brilho = linhaCentral.AddComponent<Outline>();
         brilho.effectColor = new Color(0.75f, 0.6f, 0.35f, 0.4f);
@@ -841,14 +854,14 @@ public class InterfaceJogo : MonoBehaviour
         {
             fundoItem.color = new Color(0.38f, 0.26f, 0.16f, 0.5f);
         }
-        
+
         Outline bordaItem = container.AddComponent<Outline>();
         bordaItem.effectColor = new Color(0.55f, 0.42f, 0.28f, destacar ? 0.6f : 0.3f);
         bordaItem.effectDistance = new Vector2(1f, 1f);
 
         GameObject labelObj = new GameObject("Label");
         labelObj.transform.SetParent(container.transform, false);
-        
+
         RectTransform rtLabel = labelObj.AddComponent<RectTransform>();
         rtLabel.anchorMin = new Vector2(0f, 0f);
         rtLabel.anchorMax = new Vector2(0.45f, 1f);
@@ -865,7 +878,7 @@ public class InterfaceJogo : MonoBehaviour
 
         GameObject valorObj = new GameObject("Valor");
         valorObj.transform.SetParent(container.transform, false);
-        
+
         RectTransform rtValor = valorObj.AddComponent<RectTransform>();
         rtValor.anchorMin = new Vector2(0.45f, 0f);
         rtValor.anchorMax = new Vector2(1f, 1f);
@@ -893,7 +906,7 @@ public class InterfaceJogo : MonoBehaviour
         LayoutElement le = container.AddComponent<LayoutElement>();
         le.preferredHeight = 16f;
         le.flexibleWidth = 1f;
-        
+
         // Fundo de madeira
         Image fundoContainer = container.AddComponent<Image>();
         fundoContainer.color = new Color(0.38f, 0.26f, 0.16f, 0.6f);
@@ -927,7 +940,7 @@ public class InterfaceJogo : MonoBehaviour
 
         Image fundoBarra = barraContainer.AddComponent<Image>();
         fundoBarra.color = new Color(0.2f, 0.14f, 0.08f, 1f); // Madeira escura
-        
+
         Outline bordaBarra = barraContainer.AddComponent<Outline>();
         bordaBarra.effectColor = new Color(0.55f, 0.42f, 0.28f, 0.6f);
         bordaBarra.effectDistance = new Vector2(1f, 1f);
@@ -986,7 +999,7 @@ public class InterfaceJogo : MonoBehaviour
     // Manter compatibilidade com métodos antigos
     private void CriarItemVidas(Transform parent) => CriarItemVidasPremium(parent);
     private void CriarLinhaFina(Transform parent) => CriarSeparadorFino(parent);
-    private void CriarItemHUD(Transform parent, string label, ref Text textoRef, Color cor, int tamanhoFonte) 
+    private void CriarItemHUD(Transform parent, string label, ref Text textoRef, Color cor, int tamanhoFonte)
         => CriarItemHUDPremium(parent, label, ref textoRef, cor, tamanhoFonte, false);
     private void CriarBarraProgressoSimples(Transform parent) => CriarBarraProgressoPremium(parent);
 
@@ -1229,10 +1242,10 @@ public class InterfaceJogo : MonoBehaviour
             () => UnityEngine.SceneManagement.SceneManager.LoadScene("Menu"));
 
         painel.SetActive(false);
-        
+
         if (gerenciador != null)
         {
-            var campo = typeof(GerenciadorJogo).GetField("painelPausa", 
+            var campo = typeof(GerenciadorJogo).GetField("painelPausa",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (campo != null)
             {
@@ -1312,7 +1325,7 @@ public class InterfaceJogo : MonoBehaviour
         {
             int moedasAtuais = gerenciador.MoedasColetadas;
             textoMoedas.text = moedasAtuais.ToString();
-            
+
             // Flash visual quando coletou moeda
             if (moedasAtuais > ultimasMoedas)
             {
@@ -1484,7 +1497,7 @@ public class InterfaceJogo : MonoBehaviour
 
         painelVitoria.SetActive(true);
         int bonus = Mathf.Max(0, 300 - Mathf.RoundToInt(gerenciador.TempoDeJogo));
-        
+
         textoVitoria.text = $"🏆 VITÓRIA! 🏆\n\n" +
                            $"💰 {gerenciador.PontuacaoTotal:N0} pontos\n" +
                            $"⏱️ {FormatarTempo(gerenciador.TempoDeJogo)}\n" +
@@ -1499,7 +1512,7 @@ public class InterfaceJogo : MonoBehaviour
         if (painelVitoria == null || textoVitoria == null || gerenciador == null) return;
 
         painelVitoria.SetActive(true);
-        
+
         textoVitoria.text = $"🏆 COMPLETO! 🏆\n\n" +
                            $"🎊 Parabéns!\n\n" +
                            $"💰 {gerenciador.PontuacaoTotal:N0}\n" +
@@ -1522,7 +1535,7 @@ public class InterfaceJogo : MonoBehaviour
         if (painelDerrota != null)
         {
             painelDerrota.SetActive(true);
-            
+
             if (textoDerrota != null)
             {
                 textoDerrota.text = $"💀 GAME OVER 💀\n\n" +

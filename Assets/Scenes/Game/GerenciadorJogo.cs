@@ -32,7 +32,7 @@ public class GerenciadorJogo : MonoBehaviour
     #region Sistema de Níveis
     [Header("Sistema de Níveis")]
     [SerializeField] private int nivelAtual = 1;
-    [SerializeField] private int nivelMaximo = 10;
+    [SerializeField] private int nivelMaximo = 2;
     [SerializeField] private float tempoTransicaoNivel = 3f;
     #endregion
 
