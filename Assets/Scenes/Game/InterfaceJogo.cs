@@ -511,7 +511,8 @@ public class InterfaceJogo : MonoBehaviour
 
         Text textoConteudo = conteudoObj.AddComponent<Text>();
 
-        // Obter nível máximo do gerenciador
+        int nivelMaximo = 0;
+
         if (gerenciador != null)
         {
             var campoNivelMaximo = gerenciador.GetType().GetField("nivelMaximo",
@@ -519,11 +520,14 @@ public class InterfaceJogo : MonoBehaviour
 
             if (campoNivelMaximo != null)
             {
-                nivelMax = (int)campoNivelMaximo.GetValue(gerenciador);
+                object valor = campoNivelMaximo.GetValue(gerenciador);
+                if (valor is int)
+                    nivelMaximo = (int)valor;
             }
         }
 
-        textoConteudo.text = $"Colete todas as\nmoedas 🪙 para\npassar de nível e\nalcance o nível\n{nivelMax} para vencer!";
+       textoConteudo.text =
+    $"Colete todas as\nmoedas 🪙 para\npassar de nível e\nalcance o nível\n{nivelMaximo} para vencer!";
         textoConteudo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         textoConteudo.fontSize = 13;
         textoConteudo.color = new Color(0.9f, 0.85f, 0.75f);
@@ -1350,10 +1354,9 @@ public class InterfaceJogo : MonoBehaviour
 
         List<string> ativos = new List<string>();
 
-        if (gerenciador.TemVelocidadeExtra()) ativos.Add("⚡");
+       if (gerenciador.TemVelocidadeExtra()) ativos.Add("⚡");
         if (gerenciador.TemPontuacaoDupla()) ativos.Add("x2");
-        if (gerenciador.TemInvencibilidade()) ativos.Add("🛡️");
-
+        if (gerenciador.TemInvencibilidade()) ativos.Add("⛨");
         if (ativos.Count > 0)
         {
             textoPowerUps.text = string.Join(" ", ativos);
