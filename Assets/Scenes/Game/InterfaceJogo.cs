@@ -362,7 +362,7 @@ public class InterfaceJogo : MonoBehaviour
         CriarTituloHUD(conteudo.transform);
         CriarItemVidasPremium(conteudo.transform);
         CriarItemHUDCompacto(conteudo.transform, "PONTOS", ref textoPontuacao, corDestaque, 22, true);
-        CriarItemHUDCompacto(conteudo.transform, "POWER-UP", ref textoPowerUps, new Color(0.85f, 0.65f, 1f), 14, false);
+        CriarItemHUDCompacto(conteudo.transform, "POWER-UP", ref textoPowerUps, new Color(0.85f, 0.65f, 1f), 10, false);
         CriarItemHUDCompacto(conteudo.transform, "NÍVEL", ref textoNivel, new Color(0.6f, 0.9f, 1f), 17, false);
         CriarItemHUDCompacto(conteudo.transform, "TEMPO", ref textoTempo, corTexto, 16, false);
         CriarBarraProgressoCompacta(conteudo.transform);
@@ -526,8 +526,8 @@ public class InterfaceJogo : MonoBehaviour
             }
         }
 
-       textoConteudo.text =
-    $"Colete todas as\nmoedas 🪙 para\npassar de nível e\nalcance o nível\n{nivelMaximo} para vencer!";
+        textoConteudo.text =
+     $"Colete todas as\nmoedas 🪙 para\npassar de nível e\nalcance o nível\n{nivelMaximo} para vencer!";
         textoConteudo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         textoConteudo.fontSize = 13;
         textoConteudo.color = new Color(0.9f, 0.85f, 0.75f);
@@ -1352,15 +1352,51 @@ public class InterfaceJogo : MonoBehaviour
     {
         if (textoPowerUps == null || gerenciador == null) return;
 
-        List<string> ativos = new List<string>();
+        List<string> ativosFormatados = new List<string>();
 
-       if (gerenciador.TemVelocidadeExtra()) ativos.Add("⚡");
-        if (gerenciador.TemPontuacaoDupla()) ativos.Add("x2");
-        if (gerenciador.TemInvencibilidade()) ativos.Add("⛨");
-        if (ativos.Count > 0)
+        float f = Mathf.PingPong(Time.time * 6f, 1f); // fator para piscar
+        Color corCheia = corDestaque;
+        Color corFraca = new Color(corDestaque.r, corDestaque.g, corDestaque.b, 0.25f);
+
+        string CorParaHEX(Color c)
         {
-            textoPowerUps.text = string.Join(" ", ativos);
-            textoPowerUps.color = corDestaque;
+            return ColorUtility.ToHtmlStringRGBA(c);
+        }
+
+        // 1️⃣ Velocidade
+        if (gerenciador.TemVelocidadeExtra())
+        {
+            float t = gerenciador.TempoRestanteVelocidadeExtra();
+            bool quaseAcabando = t <= 3f;
+
+            Color cor = quaseAcabando ? Color.Lerp(corCheia, corFraca, f) : corCheia;
+            ativosFormatados.Add($"<color=#{CorParaHEX(cor)}>Velocidade</color>");
+        }
+
+        // 2️⃣ Pontuação Dupla
+        if (gerenciador.TemPontuacaoDupla())
+        {
+            float t = gerenciador.TempoRestantePontuacaoDupla();
+            bool quaseAcabando = t <= 3f;
+
+            Color cor = quaseAcabando ? Color.Lerp(corCheia, corFraca, f) : corCheia;
+            ativosFormatados.Add($"<color=#{CorParaHEX(cor)}>Pontos x2</color>");
+        }
+
+        // 3️⃣ Invencibilidade
+        if (gerenciador.TemInvencibilidade())
+        {
+            float t = gerenciador.TempoRestanteInvencibilidade();
+            bool quaseAcabando = t <= 3f;
+
+            Color cor = quaseAcabando ? Color.Lerp(corCheia, corFraca, f) : corCheia;
+            ativosFormatados.Add($"<color=#{CorParaHEX(cor)}>Invencivel</color>");
+        }
+
+        if (ativosFormatados.Count > 0)
+        {
+            textoPowerUps.supportRichText = true;
+            textoPowerUps.text = string.Join(" ", ativosFormatados);
         }
         else
         {
@@ -1368,6 +1404,8 @@ public class InterfaceJogo : MonoBehaviour
             textoPowerUps.color = new Color(0.4f, 0.4f, 0.4f);
         }
     }
+
+
 
     private void AtualizarProgresso()
     {

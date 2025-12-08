@@ -32,7 +32,7 @@ public class GerenciadorJogo : MonoBehaviour
     #region Sistema de Níveis
     [Header("Sistema de Níveis")]
     [SerializeField] private int nivelAtual = 1;
-    [SerializeField] private int nivelMaximo = 2;
+    [SerializeField] private int nivelMaximo = 5;
     [SerializeField] private float tempoTransicaoNivel = 3f;
     #endregion
 
@@ -1108,6 +1108,15 @@ public class GerenciadorJogo : MonoBehaviour
     public bool TemVelocidadeExtra() => efeitosPowerUp[0];
     public bool TemPontuacaoDupla() => efeitosPowerUp[1];
     public bool TemInvencibilidade() => efeitosPowerUp[2] || invencivelPorDano;
+
+    public float TempoRestanteVelocidadeExtra()
+    => Mathf.Max(0f, temporizadoresPowerUp[(int)TipoPowerUp.Velocidade]);
+
+    public float TempoRestantePontuacaoDupla()
+        => Mathf.Max(0f, temporizadoresPowerUp[(int)TipoPowerUp.PontuacaoDupla]);
+
+    public float TempoRestanteInvencibilidade()
+        => Mathf.Max(0f, temporizadoresPowerUp[(int)TipoPowerUp.Invencibilidade]);
 
     public Personagem ObterPersonagem() => personagem;
     public Tabuleiro ObterTabuleiro() => tabuleiro;
