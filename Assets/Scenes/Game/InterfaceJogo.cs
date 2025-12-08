@@ -475,21 +475,25 @@ public class InterfaceJogo : MonoBehaviour
         secao.transform.SetParent(parent, false);
 
         LayoutElement le = secao.AddComponent<LayoutElement>();
-        le.preferredHeight = 65f;
+        le.preferredHeight = 70f;
         le.flexibleWidth = 1f;
 
         Image fundo = secao.AddComponent<Image>();
         fundo.color = new Color(0.38f, 0.26f, 0.16f, 0.5f);
 
-        // Título da seção
+        // 🔹 Layout vertical interno
+        VerticalLayoutGroup layout = secao.AddComponent<VerticalLayoutGroup>();
+        layout.padding = new RectOffset(4, 4, 4, 4);
+        layout.spacing = 2f;
+        layout.childAlignment = TextAnchor.UpperLeft;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
+
+        // 🔹 Título da seção
         GameObject tituloObj = new GameObject("Titulo");
         tituloObj.transform.SetParent(secao.transform, false);
-
-        RectTransform rtTitulo = tituloObj.AddComponent<RectTransform>();
-        rtTitulo.anchorMin = new Vector2(0f, 0.75f);
-        rtTitulo.anchorMax = new Vector2(1f, 1f);
-        rtTitulo.offsetMin = new Vector2(4f, 0f);
-        rtTitulo.offsetMax = new Vector2(-4f, 0f);
 
         Text textoTitulo = tituloObj.AddComponent<Text>();
         textoTitulo.text = "🎯 OBJETIVO";
@@ -499,24 +503,26 @@ public class InterfaceJogo : MonoBehaviour
         textoTitulo.color = new Color(1f, 0.85f, 0.4f);
         textoTitulo.alignment = TextAnchor.MiddleLeft;
 
-        // Conteúdo
+        // 🔹 Conteúdo
         GameObject conteudoObj = new GameObject("Conteudo");
         conteudoObj.transform.SetParent(secao.transform, false);
 
-        RectTransform rtConteudo = conteudoObj.AddComponent<RectTransform>();
-        rtConteudo.anchorMin = new Vector2(0f, 0f);
-        rtConteudo.anchorMax = new Vector2(1f, 0.75f);
-        rtConteudo.offsetMin = new Vector2(4f, 2f);
-        rtConteudo.offsetMax = new Vector2(-4f, 0f);
-
         Text textoConteudo = conteudoObj.AddComponent<Text>();
+        textoConteudo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        textoConteudo.fontSize = 13;
+        textoConteudo.color = new Color(0.9f, 0.85f, 0.75f);
+        textoConteudo.alignment = TextAnchor.UpperLeft;
+        textoConteudo.horizontalOverflow = HorizontalWrapMode.Wrap;
+        textoConteudo.verticalOverflow = VerticalWrapMode.Overflow;
 
         int nivelMaximo = 0;
 
         if (gerenciador != null)
         {
-            var campoNivelMaximo = gerenciador.GetType().GetField("nivelMaximo",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var campoNivelMaximo = gerenciador.GetType().GetField(
+                "nivelMaximo",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
+            );
 
             if (campoNivelMaximo != null)
             {
@@ -527,12 +533,11 @@ public class InterfaceJogo : MonoBehaviour
         }
 
         textoConteudo.text =
-     $"Colete todas as\nmoedas 🪙 para\npassar de nível e\nalcance o nível\n{nivelMaximo} para vencer!";
-        textoConteudo.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        textoConteudo.fontSize = 13;
-        textoConteudo.color = new Color(0.9f, 0.85f, 0.75f);
-        textoConteudo.alignment = TextAnchor.UpperLeft;
+            $"Colete todas as moedas para\n" +
+            $"passar de fase e alcance\n" +
+            $"o nível {nivelMaximo} para vencer!";
     }
+
 
     private void CriarSecaoControles(Transform parent)
     {
